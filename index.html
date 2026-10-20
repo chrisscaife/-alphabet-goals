@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Alphabet Goals</title>
+<meta name="description" content="Name a Premier League player for every letter A to Z. Most goals wins. Tap to join the game.">
+<meta property="og:title" content="Alphabet Goals ⚽">
+<meta property="og:description" content="Name a Premier League player for every letter A to Z. Most goals wins. Tap to join the game.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0d2a1c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alphabet Goals">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: floodlit scoreboard — alphabet strip, big letter, turn panel, league table */
+:root{
+  --bg:#0d2a1c; --panel:#123826; --line:#2a5c42; --chalk:#eef3ea; --muted:#9dbaa8;
+  --gold:#f2c230; --red:#e0573f; --ok:#6fd39a;
+  --display:"Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+  --body:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--chalk)}
+body{font-family:var(--body);font-size:16px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px;
+  background-image:repeating-linear-gradient(90deg,transparent 0 60px,rgba(255,255,255,.025) 60px 120px)}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:900;font-size:2.6rem;line-height:1;margin:0;letter-spacing:.02em;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--gold)}
+.sub{color:var(--muted);margin:4px 0 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.label{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+input[type=text]{font:inherit;font-size:1.05rem;background:var(--bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%;box-sizing:border-box}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button{font:inherit;font-weight:700;cursor:pointer;border-radius:4px;padding:10px 16px;border:1px solid var(--line);background:transparent;color:var(--chalk);text-transform:uppercase;letter-spacing:.06em;font-size:.9rem}
+button.primary{background:var(--gold);color:#1a1a0a;border-color:var(--gold)}
+button:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > *{min-width:0}
+.conn{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.live{background:var(--ok);box-shadow:0 0 0 3px rgba(111,211,154,.2)}
+.seats{display:flex;flex-direction:column;gap:6px}
+.seat{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:4px}
+.seat .nm{font-weight:700;font-size:1.05rem;min-width:0;overflow-wrap:anywhere}
+.tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700}
+.seat button{padding:6px 10px;font-size:.78rem}
+.mode{display:flex;flex-direction:column;gap:8px}
+.mode label{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.mode input{margin-top:4px;accent-color:var(--gold)}
+.mode b{display:block}
+.mode small{color:var(--muted)}
+.strip{display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+.strip div{font-family:var(--display);font-weight:700;text-align:center;padding:4px 0;border-radius:3px;background:rgba(255,255,255,.04);color:var(--muted);font-size:1.05rem}
+.strip .done{color:var(--chalk);background:rgba(111,211,154,.15)}
+.strip .skip{text-decoration:line-through;opacity:.5}
+.strip .now{background:var(--gold);color:#1a1a0a}
+.turn{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.bigletter{font-family:var(--display);font-weight:900;font-size:6.5rem;line-height:.85;color:var(--gold);min-width:1.1ch;text-align:center}
+.who{font-family:var(--display);font-weight:700;font-size:1.7rem;text-transform:uppercase;line-height:1.05;overflow-wrap:anywhere}
+.hint{color:var(--muted);font-size:.95rem}
+.yourturn{color:var(--ok)}
+.field{position:relative}
+.sugs{position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--panel);border:1px solid var(--line);border-top:0;border-radius:0 0 4px 4px;max-height:220px;overflow:auto}
+.sugs button{display:flex;justify-content:space-between;width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;text-transform:none;letter-spacing:0;font-weight:500;font-size:1rem;text-align:left;padding:9px 12px}
+.sugs button:hover,.sugs button.act{background:rgba(242,194,48,.12)}
+.sugs .g{color:var(--gold);font-variant-numeric:tabular-nums}
+.goals{display:flex;align-items:center;gap:8px}
+.goals button{width:44px;padding:8px 0;font-size:1.2rem}
+.goals input{width:90px;text-align:center;font-family:var(--display);font-size:1.6rem;font-weight:700;padding:4px}
+.msg{min-height:1.3em;font-weight:600}
+.msg.err{color:var(--red)} .msg.ok{color:var(--ok)}
+.waiting{padding:14px;border:1px dashed var(--line);border-radius:4px;color:var(--muted);text-align:center}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line)}
+td.pts{font-family:var(--display);font-weight:900;font-size:1.6rem;text-align:right;color:var(--gold)}
+th.r,td.r{text-align:right}
+tr.active td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+.pos{font-family:var(--display);font-weight:700;color:var(--muted);width:2ch}
+.log{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto}
+.log div{display:grid;grid-template-columns:2ch 1fr auto;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.95rem}
+.log .L{font-family:var(--display);font-weight:700;color:var(--gold)}
+.log .n{min-width:0;overflow-wrap:anywhere}
+.log .pass{color:var(--muted)}
+.log .gl{font-variant-numeric:tabular-nums;font-weight:700}
+.final{text-align:center}
+.final .who{font-size:2.4rem;color:var(--gold)}
+.note{color:var(--muted);font-size:.85rem;margin:0}
+@media (max-width:480px){.bigletter{font-size:5rem}.strip div{font-size:.95rem}h1{font-size:2.1rem}}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(1.25);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+<style>
+body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+[hidden]{display:none!important}
+.wa{display:flex;justify-content:center;align-items:center;gap:8px;padding:14px 16px;border-radius:4px;background:#25d366;color:#08240f;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-decoration:none;font-size:1rem}
+.wa:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.big-btn{font-size:1.05rem;padding:14px 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Alphabet <span>Goals</span></h1>
+    <p class="sub">Name a Premier League player by surname, A to Z. Their Premier League goals go on your score.</p>
+    <div class="conn" style="margin-top:8px"><span id="dot" class="dot"></span><span id="connText">Connecting…</span></div>
+  </header>
+
+  <!-- LOBBY -->
+  <section id="lobby" class="panel">
+    <div id="joinBox" style="display:flex;flex-direction:column;gap:10px">
+      <label class="label" for="myName">Your name</label>
+      <input id="myName" type="text" placeholder="e.g. Chris" maxlength="24" autocomplete="given-name">
+      <button id="join" class="primary big-btn" type="button">Join the game</button>
+    </div>
+    <div class="label">Squad</div>
+    <div id="seats" class="seats"></div>
+    <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
+    <details>
+      <summary class="label" style="cursor:pointer">More options</summary>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <div class="row">
+          <input id="guestName" type="text" placeholder="Add someone without a phone" maxlength="24" style="flex:1;min-width:140px">
+          <button id="addGuest" type="button">Add</button>
+        </div>
+        <div class="mode">
+          <label><input type="radio" name="mode" id="modeAll" value="all" checked>
+            <span><b>Everyone plays every letter</b><small>Each player names someone for A, then everyone does B, and so on.</small></span></label>
+          <label><input type="radio" name="mode" id="modeRelay" value="relay">
+            <span><b>Relay through the alphabet</b><small>Player 1 takes A, player 2 takes B, player 3 takes C… one run of the alphabet.</small></span></label>
+        </div>
+        <div class="row"><button id="clearSquad" type="button">Clear the squad</button></div>
+        <div id="clearConfirm" class="row" hidden><span>Remove everyone from the squad?</span><button id="clearYes" class="primary" type="button">Yes, clear it</button><button id="clearNo" type="button">Cancel</button></div>
+      </div>
+    </details>
+    <button id="start" class="primary big-btn" type="button">Kick off</button>
+    <div id="lobbyMsg" class="msg" role="status"></div>
+    <p class="note">Everyone opens this same link, types their name and taps Join. Anyone can kick off once you're all in. No repeats: once a player's been named, nobody can use him again.</p>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" hidden>
+    <div class="wrap">
+      <div id="strip" class="strip" aria-label="Alphabet progress"></div>
+      <div class="panel">
+        <div class="turn">
+          <div id="big" class="bigletter">A</div>
+          <div>
+            <div class="label" id="onball">On the ball</div>
+            <div id="who" class="who"></div>
+            <div id="hint" class="hint"></div>
+          </div>
+        </div>
+        <div id="controls">
+          <div class="field">
+            <label class="label" for="pname">Player's name</label>
+            <input id="pname" type="text" autocomplete="off" placeholder="Type a player's name">
+          </div>
+          <div style="margin-top:12px">
+            <label class="label" for="goals">Premier League goals</label>
+            <div class="goals">
+              <button type="button" id="gMinus" aria-label="One fewer goal">−</button>
+              <input id="goals" type="text" inputmode="numeric" value="0">
+              <button type="button" id="gPlus" aria-label="One more goal">+</button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <button id="submit" class="primary" type="button">Add goals</button>
+            <button id="pass" type="button">Pass (0)</button>
+            <button id="skipL" type="button">Skip letter</button>
+          </div>
+        </div>
+        <div id="waiting" class="waiting" hidden></div>
+        <div id="msg" class="msg" role="status"></div>
+      </div>
+      <div class="panel">
+        <div class="label">Table</div>
+        <table><thead><tr><th>#</th><th>Player</th><th class="r">Named</th><th class="r">Goals</th></tr></thead><tbody id="table"></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="label">Match log</div>
+        <div id="log" class="log"></div>
+        <div class="row"><button id="undo" type="button">Undo last turn</button><button id="restart" type="button">New game</button></div>
+        <div id="confirmRow" class="row" hidden><span>Start again for everyone? Scores will be lost.</span><button id="yesRestart" class="primary" type="button">Yes, new game</button><button id="noRestart" type="button">Cancel</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="panel final" hidden>
+    <div class="label">Full time</div>
+    <div id="winner" class="who"></div>
+    <p id="winSub" class="sub"></p>
+    <div class="row" style="justify-content:center"><button id="again" class="primary" type="button">Play again</button><button id="seeTable" type="button">See the table</button></div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>
+const DB=[
+["Sergio Agüero","A",184],["Emmanuel Adebayor","A",97],["Nicolas Anelka","A",125],["Pierre-Emerick Aubameyang","A",92],["Dele Alli","A",51],["Charlie Austin","A",43],["Michail Antonio","A",68],["Mikel Arteta","A",28],
+["Darren Bent","B",106],["Dennis Bergkamp","B",87],["David Beckham","B",62],["Craig Bellamy","B",91],["Gareth Barry","B",53],["Demba Ba","B",43],
+["Andy Cole","C",187],["Peter Crouch","C",108],["Eric Cantona","C",70],["Tim Cahill","C",56],["Diego Costa","C",52],["Philippe Coutinho","C",41],
+["Jermain Defoe","D",162],["Didier Drogba","D",104],["Dion Dublin","D",111],["Paolo Di Canio","D",66],["Edin Džeko","D",50],
+["Christian Eriksen","E",57],
+["Robbie Fowler","F",163],["Les Ferdinand","F",149],["Roberto Firmino","F",71],["Cesc Fàbregas","F",50],["Bruno Fernandes","F",77],
+["Steven Gerrard","G",120],["Ryan Giggs","G",109],
+["Thierry Henry","H",175],["Eden Hazard","H",85],["Emile Heskey","H",110],["Jimmy Floyd Hasselbaink","H",127],["Erling Haaland","H",85],["Javier Hernández","H",53],
+["Danny Ings","I",71],
+["Diogo Jota","J",65],
+["Harry Kane","K",213],["Robbie Keane","K",126],["Dirk Kuyt","K",51],["Roy Keane","K",33],
+["Frank Lampard","L",177],["Romelu Lukaku","L",121],["Matt Le Tissier","L",100],
+["Sadio Mané","M",111],["Riyad Mahrez","M",78],
+["Kevin Nolan","N",69],["Mark Noble","N",47],
+["Michael Owen","O",150],["Mesut Özil","O",33],
+["Robert Pires","P",62],["Kevin Phillips","P",92],
+["Niall Quinn","Q",59],
+["Wayne Rooney","R",208],["Cristiano Ronaldo","R",103],
+["Alan Shearer","S",260],["Mohamed Salah","S",186],["Son Heung-min","S",127],["Teddy Sheringham","S",146],["Paul Scholes","S",107],["Chris Sutton","S",83],["Ole Gunnar Solskjær","S",91],["Luis Suárez","S",69],["Raheem Sterling","S",123],
+["Fernando Torres","T",85],["Carlos Tevez","T",84],["John Terry","T",41],
+["David Unsworth","U",38],
+["Robin van Persie","V",144],["Ruud van Nistelrooy","V",95],["Jamie Vardy","V",143],["Patrick Vieira","V",31],["Mark Viduka","V",42],
+["Ian Wright","W",113],["Theo Walcott","W",65],
+["Granit Xhaka","X",23],
+["Dwight Yorke","Y",123],["Yakubu","Y",95],["Ashley Young","Y",38],
+["Wilfried Zaha","Z",68],["Gianfranco Zola","Z",59]
+];
+const LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const norm=s=>String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/ø/g,"o").trim();
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* One private room for this link. Change ROOM to start a completely separate game space. */
+const ROOM="f96b7a4e906d";
+const BASE="alphabetgoals/"+ROOM+"/";
+const BROKERS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
+
+let ME=ls.get("ag-device");if(!ME){ME="d"+Math.random().toString(36).slice(2,10);ls.set("ag-device",ME)}
+if(ls.get("ag-name"))$("myName").value=ls.get("ag-name");
+
+const blank=()=>({phase:"lobby",mode:"all",players:[],li:0,pi:0,turns:[],skipped:[],used:[],rev:0,ts:0});
+let S=blank();
+const seats={}; // id -> {name,t,guest}
+const clients=[];
+
+/* ---------- connection ---------- */
+function connStatus(){
+  const up=clients.filter(c=>c.connected).length;
+  $("dot").className="dot"+(up?" live":"");
+  $("connText").textContent=up?"Live: moves show on every phone":"Connecting…";
+}
+function send(topic,obj){
+  const payload=obj==null?"":JSON.stringify(obj);
+  let ok=false;
+  clients.forEach(c=>{if(c.connected){c.publish(BASE+topic,payload,{retain:true,qos:1});ok=true}});
+  return ok;
+}
+function onMessage(topic,buf){
+  const sub=topic.slice(BASE.length),txt=buf.toString();
+  if(sub==="state"){
+    if(!txt)return;
+    let g;try{g=JSON.parse(txt)}catch(e){return}
+    if(!g||!Array.isArray(g.players))return;
+    if(g.rev>S.rev||(g.rev===S.rev&&g.ts>S.ts)){S=g;render()}
+  }else if(sub.startsWith("seat/")){
+    const id=sub.slice(5);
+    if(!txt){if(seats[id]){delete seats[id];render()}return}
+    let v;try{v=JSON.parse(txt)}catch(e){return}
+    if(!v||!v.name)return;
+    const cur=seats[id];
+    if(!cur||(v.u||0)>=(cur.u||0)){seats[id]=v;render()}
+  }
+}
+function connect(){
+  if(!window.mqtt){$("connText").textContent="Couldn't load. Check your internet and refresh the page.";return}
+  BROKERS.forEach(url=>{
+    const c=mqtt.connect(url,{reconnectPeriod:2000,connectTimeout:8000,clean:true,clientId:"ag_"+ME+"_"+Math.random().toString(36).slice(2,6)});
+    c.on("connect",()=>{c.subscribe([BASE+"state",BASE+"seat/+"],{qos:1});connStatus()});
+    c.on("close",connStatus);c.on("offline",connStatus);c.on("error",()=>{});
+    c.on("message",onMessage);
+    clients.push(c);
+  });
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)clients.forEach(c=>{if(!c.connected){try{c.reconnect()}catch(e){}}});connStatus()});
+}
+function commit(mutate){
+  const next=JSON.parse(JSON.stringify(S));
+  const err=mutate(next);
+  if(err){flash(err,"err");return false}
+  next.rev=(S.rev||0)+1;next.ts=Date.now();
+  if(!send("state",next)){flash("Not connected right now. Give it a moment and try again.","err");return false}
+  S=next;render();return true;
+}
+function flash(t,cls){const el=S.phase==="lobby"?$("lobbyMsg"):$("msg");el.textContent=t||"";el.className="msg "+(cls||"")}
+
+/* ---------- rules ---------- */
+function advance(g){
+  if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){g.pi=0;g.li++}}
+  else{g.li++;g.pi=(g.pi+1)%g.players.length}
+  if(g.li>=26)g.phase="over";
+}
+function surnameOK(name,L){
+  const known=DB.find(d=>norm(d[0])===norm(name));
+  if(known)return known[1]===L;
+  const words=norm(name).split(/\s+/).filter(Boolean),l=L.toLowerCase();
+  if(!words.length)return false;
+  if(words.length===1)return words[0][0]===l;
+  return words.slice(1).some(w=>w[0]===l);
+}
+// match what was typed to a known player: full name, surname, or last word
+function canon(name,L){
+  const q=norm(name);if(!q)return null;
+  let hit=DB.find(d=>norm(d[0])===q);if(hit)return hit;
+  const pool=DB.filter(d=>!L||d[1]===L);
+  const bySurname=pool.filter(d=>{const w=norm(d[0]).split(/\s+/);return w.slice(1).join(" ")===q||w[w.length-1]===q||(w.length===1&&w[0]===q)});
+  return bySurname.length===1?bySurname[0]:null;
+}
+const keyFor=(name,L)=>{const c=canon(name,L);return c?norm(c[0]):norm(name)};
+function alreadyUsed(g,name,L){
+  const k=keyFor(name,L);if(g.used.includes(k))return true;
+  const w=norm(name).split(/\s+/);
+  if(w.length===1)return g.used.some(u=>{const uw=u.split(/\s+/);return uw[uw.length-1]===w[0]});
+  return false;
+}
+const canPlay=(g,dev)=>{const p=g.players[g.pi];return !!p&&(p.guest||p.dev===dev)};
+const seatList=()=>Object.entries(seats).map(([id,v])=>({id,...v})).sort((a,b)=>a.t-b.t);
+
+/* ---------- render ---------- */
+let viewTable=false,lastKey="";
+function render(){
+  const ph=S.phase;
+  if(ph!=="over")viewTable=false;
+  $("lobby").hidden=ph!=="lobby";
+  $("game").hidden=!(ph==="playing"||(ph==="over"&&viewTable));
+  $("result").hidden=!(ph==="over"&&!viewTable);
+  if(ph==="lobby")renderLobby();
+  else if(ph==="over"&&!viewTable)renderResult();
+  else renderGame();
+}
+function renderLobby(){
+  const list=seatList(),box=$("seats");box.innerHTML="";
+  if(!list.length)box.innerHTML='<div class="waiting">Nobody\'s in yet. Type your name and tap Join.</div>';
+  list.forEach(p=>{
+    const d=document.createElement("div");d.className="seat";
+    const n=document.createElement("div");n.innerHTML='<div class="nm"></div><div class="tag"></div>';
+    n.querySelector(".nm").textContent=p.name;
+    n.querySelector(".tag").textContent=p.id===ME?"You":(p.guest?"Shares a phone":"On their phone");
+    d.appendChild(n);
+    const b=document.createElement("button");b.type="button";b.textContent=p.id===ME?"Leave":"Remove";
+    b.onclick=()=>{send("seat/"+p.id,null);delete seats[p.id];render()};d.appendChild(b);
+    box.appendChild(d);
+  });
+  $("joinBox").hidden=!!seats[ME];
+  $("modeAll").checked=S.mode!=="relay";$("modeRelay").checked=S.mode==="relay";
+  $("start").disabled=!list.length;
+  $("start").textContent=list.length<2?"Kick off (need 2+ for a match)":"Kick off with "+list.length+" players";
+  const link=location.href.split("?")[0].split("#")[0];
+  $("waShare").href="https://wa.me/?text="+encodeURIComponent("⚽ Alphabet Goals: name a Premier League player for every letter, most goals wins. Tap to join:\n"+link);
+}
+const myTurn=()=>canPlay(S,ME);
+function renderGame(){
+  const over=S.phase==="over",L=over?"FT":LETTERS[S.li];
+  const strip=$("strip");strip.innerHTML="";
+  LETTERS.forEach((x,i)=>{const d=document.createElement("div");d.textContent=x;
+    if(i<S.li)d.className=S.skipped.includes(x)?"done skip":"done";
+    if(i===S.li&&!over)d.className="now";strip.appendChild(d)});
+  const key=S.li+":"+S.pi+":"+S.phase,big=$("big");big.textContent=L;
+  if(key!==lastKey){big.classList.remove("pop");void big.offsetWidth;big.classList.add("pop");$("pname").value="";$("goals").value="0";$("msg").textContent="";lastKey=key}
+  const cur=S.players[S.pi];
+  const inGame=S.players.some(p=>p.dev===ME);
+  if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Undo the last turn to keep going, or start a new game."}
+  else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
+    $("who").textContent=cur?cur.name:"";$("hint").textContent="Surname beginning with "+L+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+  const canAct=!over&&myTurn();
+  $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
+  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+" to pick a player beginning with "+L+"…";
+  $("undo").disabled=!S.turns.length;
+  renderTable();renderLog();
+}
+function renderTable(){
+  const order=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score);
+  $("table").innerHTML=order.map((p,k)=>`<tr class="${S.phase==="playing"&&p.i===S.pi?"active":""}"><td class="pos">${k+1}</td><td>${esc(p.name)}${p.dev===ME?' <span class="tag">You</span>':""}</td><td class="r">${p.count}</td><td class="pts">${p.score}</td></tr>`).join("");
+}
+function renderLog(){
+  const nm=i=>S.players[i]?S.players[i].name:"?";
+  const items=[...S.turns].reverse();
+  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.pass?"–":"+"+t.goals}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
+}
+function renderResult(){
+  const order=[...S.players].sort((a,b)=>b.score-a.score);
+  if(!order.length){$("winner").textContent="Full time";$("winSub").textContent="";return}
+  const top=order.filter(p=>p.score===order[0].score);
+  $("winner").textContent=top.length>1?"Draw: "+top.map(p=>p.name).join(" & "):order[0].name+" wins";
+  $("winSub").textContent=order.map(p=>p.name+" "+p.score).join(" · ");
+}
+
+/* ---------- lobby actions ---------- */
+function joinMe(){
+  const name=$("myName").value.trim();
+  if(!name){flash("Type your name first.","err");$("myName").focus();return}
+  ls.set("ag-name",name);
+  const v={name,t:seats[ME]?seats[ME].t:Date.now(),u:Date.now()};
+  if(!send("seat/"+ME,v)){flash("Still connecting. Try again in a moment.","err");return}
+  seats[ME]=v;flash("You're in. Kick off when everyone's here.","ok");render();
+}
+$("join").onclick=joinMe;
+$("myName").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();joinMe()}});
+$("addGuest").onclick=()=>{
+  const name=$("guestName").value.trim();if(!name)return;
+  const id="g"+Math.random().toString(36).slice(2,9),v={name,t:Date.now(),u:Date.now(),guest:true};
+  if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
+  seats[id]=v;$("guestName").value="";render();
+};
+["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
+$("clearSquad").onclick=()=>$("clearConfirm").hidden=false;
+$("clearNo").onclick=()=>$("clearConfirm").hidden=true;
+$("clearYes").onclick=()=>{Object.keys(seats).forEach(id=>{send("seat/"+id,null);delete seats[id]});$("clearConfirm").hidden=true;render()};
+$("start").onclick=()=>{
+  const list=seatList();
+  if(!list.length){flash("Someone needs to join first.","err");return}
+  commit(g=>{
+    g.phase="playing";g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
+  });
+};
+
+/* ---------- turn actions ---------- */
+$("pname").addEventListener("input",()=>{flash("");
+  const ex=canon($("pname").value,LETTERS[S.li]);if(ex)$("goals").value=ex[2]});
+$("pname").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit()}});
+const gv=()=>Math.max(0,Math.min(400,parseInt($("goals").value,10)||0));
+$("gMinus").onclick=()=>$("goals").value=Math.max(0,gv()-1);
+$("gPlus").onclick=()=>$("goals").value=gv()+1;
+function turnGuard(g,li,pi){if(g.phase!=="playing"||g.li!==li||g.pi!==pi)return "That turn has moved on.";if(!canPlay(g,ME))return "It's not your turn.";return null}
+function submit(){
+  const name=$("pname").value.trim(),li=S.li,pi=S.pi,L=LETTERS[li],goals=gv();
+  if(!name){flash("Type a player's name first, or pass.","err");return}
+  if(!surnameOK(name,L)){flash(name+"'s surname doesn't start with "+L+".","err");return}
+  if(alreadyUsed(S,name,L)){flash(name+" has already been named this game.","err");return}
+  const c=canon(name,L),shown=c?c[0]:name,key=keyFor(name,L);
+  if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;if(alreadyUsed(g,name,L))return name+" has already been named this game.";
+    g.turns.push({letter:L,pi,name:shown,key,goals,pass:false,li});g.used.push(key);
+    g.players[pi].score+=goals;g.players[pi].count++;advance(g)}))flash("+"+goals+" with "+shown+".","ok");
+}
+$("submit").onclick=submit;
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;g.turns.push({letter:LETTERS[li],pi,pass:true,goals:0,li});advance(g)})};
+$("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
+  g.turns.push({letter:L,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(L);g.li++;if(g.mode==="all")g.pi=0;if(g.li>=26)g.phase="over"})};
+$("undo").onclick=()=>{viewTable=false;commit(g=>{const t=g.turns.pop();if(!t)return "Nothing to undo.";
+  if(t.skip){g.skipped=g.skipped.filter(x=>x!==t.letter);g.li=t.li;g.pi=t.prevPi}
+  else{g.li=t.li;g.pi=t.pi;if(!t.pass){g.players[t.pi].score-=t.goals;g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
+  g.phase="playing"})};
+const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
+$("restart").onclick=()=>$("confirmRow").hidden=false;
+$("noRestart").onclick=()=>$("confirmRow").hidden=true;
+$("yesRestart").onclick=()=>{$("confirmRow").hidden=true;toLobby()};
+$("again").onclick=toLobby;
+$("seeTable").onclick=()=>{viewTable=true;render()};
+
+render();connect();
+</script>
+</body>
+</html>
