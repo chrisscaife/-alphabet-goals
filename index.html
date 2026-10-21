@@ -130,6 +130,13 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
     </div>
     <div class="label">Squad</div>
     <div id="seats" class="seats"></div>
+    <div class="label">Game mode</div>
+    <div class="mode">
+      <label><input type="radio" name="game" id="gameHigh" value="high" checked>
+        <span><b>Most goals wins</b><small>Name the biggest goalscorers you can. Highest total wins.</small></span></label>
+      <label><input type="radio" name="game" id="gameLow" value="low">
+        <span><b>Fewest goals wins</b><small>Name players who barely scored. Lowest total wins, but a player with 0 Premier League goals (or a pass) adds 15.</small></span></label>
+    </div>
     <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
     <details>
       <summary class="label" style="cursor:pointer">More options</summary>
@@ -183,7 +190,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
         <div id="msg" class="msg" role="status"></div>
       </div>
       <div class="panel">
-        <div class="label">Table</div>
+        <div class="label" id="tableLabel">Table</div>
         <table><thead><tr><th>#</th><th>Player</th><th class="r">Named</th><th class="r">Goals</th></tr></thead><tbody id="table"></tbody></table>
       </div>
       <div class="panel">
@@ -221,7 +228,7 @@ const BROKERS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mq
 let ME=ls.get("ag-device");if(!ME){ME="d"+Math.random().toString(36).slice(2,10);ls.set("ag-device",ME)}
 if(ls.get("ag-name"))$("myName").value=ls.get("ag-name");
 
-const blank=()=>({phase:"lobby",mode:"all",players:[],li:0,pi:0,turns:[],skipped:[],used:[],rev:0,ts:0});
+const blank=()=>({phase:"lobby",mode:"all",game:"high",players:[],li:0,pi:0,turns:[],skipped:[],used:[],rev:0,ts:0});
 let S=blank();
 const seats={}; // id -> {name,t,guest}
 const clients=[];
@@ -286,6 +293,11 @@ const K=x=>norm(x).replace(/[-'’.]/g," ").replace(/\s+/g," ").trim();
 const SURNAME_FIRST=new Set(["son","park","ki","lee","hwang","seol","kim","li","sun","zheng","dong","jung","ji"]);
 const POSN={D:"Defender",M:"Midfielder",F:"Striker"};
 const posWords=ps=>[...ps].filter(x=>POSN[x]).map(x=>POSN[x].toLowerCase()).join(" / ")||"goalkeeper";
+const LOW_PENALTY=15;
+const isLow=g=>(g||S).game==="low";
+const ptsFor=(g,goals)=>isLow(g)&&goals===0?LOW_PENALTY:goals;
+const ptsOf=t=>t.pts!=null?t.pts:t.goals;
+const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
 const curPos=()=>S.positions?S.positions[S.li]:null;
 const randPositions=()=>LETTERS.map(()=>"DMF"[Math.floor(Math.random()*3)]);
 const IDX=PL.map(([name,goals,pos])=>{
@@ -356,6 +368,7 @@ function renderLobby(){
   });
   $("joinBox").hidden=!!seats[ME];
   $("modeAll").checked=S.mode!=="relay";$("modeRelay").checked=S.mode==="relay";
+  $("gameHigh").checked=!isLow();$("gameLow").checked=isLow();
   $("start").disabled=!list.length;
   $("start").textContent=list.length<2?"Kick off (need 2+ for a match)":"Kick off with "+list.length+" players";
   const link=location.href.split("?")[0].split("#")[0];
@@ -375,6 +388,7 @@ function renderGame(){
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Undo the last turn to keep going, or start a new game."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
     $("who").textContent=cur?cur.name:"";$("hint").textContent=(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+  $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
   const P=!over&&curPos();$("posPill").hidden=!P;if(P)$("posPill").textContent=POSN[P];
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
@@ -383,16 +397,17 @@ function renderGame(){
   renderTable();renderLog();
 }
 function renderTable(){
-  const order=S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score);
+  const order=ranked();
+  $("tableLabel").textContent=isLow()?"Table · fewest goals wins":"Table · most goals wins";
   $("table").innerHTML=order.map((p,k)=>`<tr class="${S.phase==="playing"&&p.i===S.pi?"active":""}"><td class="pos">${k+1}</td><td>${esc(p.name)}${p.dev===ME?' <span class="tag">You</span>':""}</td><td class="r">${p.count}</td><td class="pts">${p.score}</td></tr>`).join("");
 }
 function renderLog(){
   const nm=i=>S.players[i]?S.players[i].name:"?";
   const items=[...S.turns].reverse();
-  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.pass?"–":"+"+t.goals}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
+  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.skip?"–":(ptsOf(t)!==t.goals?(t.pass?"":"0 → ")+"+"+ptsOf(t):(t.pass?"–":"+"+t.goals))}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
 }
 function renderResult(){
-  const order=[...S.players].sort((a,b)=>b.score-a.score);
+  const order=ranked();
   if(!order.length){$("winner").textContent="Full time";$("winSub").textContent="";return}
   const top=order.filter(p=>p.score===order[0].score);
   $("winner").textContent=top.length>1?"Draw: "+top.map(p=>p.name).join(" & "):order[0].name+" wins";
@@ -416,6 +431,7 @@ $("addGuest").onclick=()=>{
   if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
   seats[id]=v;$("guestName").value="";render();
 };
+["gameHigh","gameLow"].forEach(id=>$(id).onchange=()=>commit(g=>{g.game=$("gameLow").checked?"low":"high"}));
 ["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
 $("clearSquad").onclick=()=>$("clearConfirm").hidden=false;
 $("clearNo").onclick=()=>$("clearConfirm").hidden=true;
@@ -424,7 +440,7 @@ $("start").onclick=()=>{
   const list=seatList();
   if(!list.length){flash("Someone needs to join first.","err");return}
   commit(g=>{
-    g.phase="playing";g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.phase="playing";g.game=$("gameLow").checked?"low":"high";g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
   });
 };
@@ -446,9 +462,11 @@ function play(name,key,goals){
   hideChoices();
   if(S.used.includes(key)){flash(name+" has already been named this game.","err");return}
   if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;if(g.used.includes(key))return name+" has already been named this game.";
-    g.turns.push({letter:L,pos:g.positions?g.positions[li]:"",pi,name,key,goals,pass:false,li});g.used.push(key);
-    g.players[pi].score+=goals;g.players[pi].count++;advance(g)})){
-    const m=$("msg");m.className="msg ok";m.innerHTML="";const r=document.createElement("span");r.className="reveal";r.textContent=name+": "+goals+(goals===1?" goal":" goals");m.appendChild(r);
+    const pts=ptsFor(g,goals);
+    g.turns.push({letter:L,pos:g.positions?g.positions[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
+    g.players[pi].score+=pts;g.players[pi].count++;advance(g)})){
+    const m=$("msg");m.className="msg ok";m.innerHTML="";const r=document.createElement("span");r.className="reveal";
+    r.textContent=name+": "+goals+(goals===1?" goal":" goals")+(isLow()&&goals===0?". That's +"+LOW_PENALTY+"!":"");m.appendChild(r);
   }
 }
 const retry=()=>{hideChoices();$("pname").focus();$("pname").select()};
@@ -478,16 +496,16 @@ function submit(){
       fz.map(p=>[fz.length===1?"Yes, "+p.name:p.name,()=>play(p.name,p.key,p.goals),fz.length===1]).concat([["No, let me retype",retry]]));
     return;
   }
-  showChoices(q+" isn't on the list of Premier League goalscorers"+(P?" (as a "+want+")":"")+". Check the spelling, or count it as 0 goals.",
-    [["Try again",retry,true],["Count as 0 goals",()=>play(q,K(q),0)]]);
+  showChoices(q+" isn't on the list of Premier League goalscorers"+(P?" (as a "+want+")":"")+". Check the spelling, or count it as 0 goals"+(isLow()?" (+"+LOW_PENALTY+" in this mode)":"")+".",
+    [["Try again",retry,true],[isLow()?"Count as 0 (+"+LOW_PENALTY+")":"Count as 0 goals",()=>play(q,K(q),0)]]);
 }
 $("submit").onclick=submit;
-$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;g.turns.push({letter:LETTERS[li],pi,pass:true,goals:0,li});advance(g)})};
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:LETTERS[li],pos:g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   g.turns.push({letter:L,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(L);g.li++;if(g.mode==="all")g.pi=0;if(g.li>=26)g.phase="over"})};
 $("undo").onclick=()=>{viewTable=false;commit(g=>{const t=g.turns.pop();if(!t)return "Nothing to undo.";
   if(t.skip){g.skipped=g.skipped.filter(x=>x!==t.letter);g.li=t.li;g.pi=t.prevPi}
-  else{g.li=t.li;g.pi=t.pi;if(!t.pass){g.players[t.pi].score-=t.goals;g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
+  else{g.li=t.li;g.pi=t.pi;if(t.pass){g.players[t.pi].score-=(t.pts||0)}else{g.players[t.pi].score-=ptsOf(t);g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
   g.phase="playing"})};
 const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
