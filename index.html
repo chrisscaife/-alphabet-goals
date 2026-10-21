@@ -289,7 +289,14 @@ function flash(t,cls){const el=S.phase==="lobby"?$("lobbyMsg"):$("msg");el.textC
 function advance(g){
   if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){g.pi=0;g.li++}}
   else{g.li++;g.pi=(g.pi+1)%g.players.length}
+  skipDead(g);
   if(g.li>=26)g.phase="over";
+}
+// letters with no Premier League goalkeeper at all are skipped in Goalkeepers mode
+const NO_KEEPER=["Q","U","X","Y"];
+function skipDead(g){
+  if(g.game!=="keepers")return;
+  while(g.li<26&&NO_KEEPER.includes(LETTERS[g.li])){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
 }
 // ---- player lookup ----
 const K=x=>norm(x).replace(/[-'’.]/g," ").replace(/\s+/g," ").trim();
@@ -516,7 +523,7 @@ function submit(){
 $("submit").onclick=submit;
 $("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:LETTERS[li],pos:g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
-  g.turns.push({letter:L,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(L);g.li++;if(g.mode==="all")g.pi=0;if(g.li>=26)g.phase="over"})};
+  g.turns.push({letter:L,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(L);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=26)g.phase="over"})};
 $("undo").onclick=()=>{viewTable=false;commit(g=>{const t=g.turns.pop();if(!t)return "Nothing to undo.";
   if(t.skip){g.skipped=g.skipped.filter(x=>x!==t.letter);g.li=t.li;g.pi=t.prevPi}
   else{g.li=t.li;g.pi=t.pi;if(t.pass){g.players[t.pi].score-=(t.pts||0)}else{g.players[t.pi].score-=ptsOf(t);g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
