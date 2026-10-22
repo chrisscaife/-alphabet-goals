@@ -509,6 +509,8 @@ function submit(){
     return;
   }
   if(!genericLetterOK(q,L)){flash(q+"'s surname doesn't start with "+L+".","err");return}
+  // Fewest goals mode: no warnings for non-scorers, it just goes through as 0 (+15)
+  if(isLow()){play(q,K(q),0);return}
   const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(p.key)&&(!P||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
   if(fz.length){
     showChoices(fz.length===1?"Did you mean "+fz[0].name+"?":"Did you mean one of these?",
