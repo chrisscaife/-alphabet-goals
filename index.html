@@ -509,8 +509,15 @@ function submit(){
     return;
   }
   if(!genericLetterOK(q,L)){flash(q+"'s surname doesn't start with "+L+".","err");return}
-  // Fewest goals mode: no warnings for non-scorers, it just goes through as 0 (+15)
-  if(isLow()){play(q,K(q),0);return}
+  // Fewest goals mode: a misspelling of a real scorer gets a "did you mean";
+  // anything else goes straight through as 0 (+15) with no warning
+  if(isLow()){
+    const near=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(p.key)&&(!P||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
+    if(!near.length){play(q,K(q),0);return}
+    showChoices(near.length===1?"Did you mean "+near[0].name+"?":"Did you mean one of these?",
+      near.map(p=>[near.length===1?"Yes, "+p.name:p.name,()=>play(p.name,p.key,p.goals),near.length===1]).concat([["No, keep “"+q+"”",()=>play(q,K(q),0)]]));
+    return;
+  }
   const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(p.key)&&(!P||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
   if(fz.length){
     showChoices(fz.length===1?"Did you mean "+fz[0].name+"?":"Did you mean one of these?",
