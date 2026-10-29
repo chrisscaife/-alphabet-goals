@@ -63,6 +63,7 @@ button:disabled{opacity:.4;cursor:default}
 .strip .skip{text-decoration:line-through;opacity:.5}
 .strip .now{background:var(--gold);color:#1a1a0a}
 .turn{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.bigletter.pair{font-size:4.2rem;letter-spacing:.04em;white-space:nowrap}
 .bigletter{font-family:var(--display);font-weight:900;font-size:6.5rem;line-height:.85;color:var(--gold);min-width:1.1ch;text-align:center}
 .who{font-family:var(--display);font-weight:700;font-size:1.7rem;text-transform:uppercase;line-height:1.05;overflow-wrap:anywhere}
 .hint{color:var(--muted);font-size:.95rem}
@@ -150,6 +151,8 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
         <span><b>Fewest goals wins</b><small>Name players who barely scored. Lowest total wins, but a player with 0 Premier League goals (or a pass) adds 15.</small></span></label>
       <label><input type="radio" name="game" id="gameKeep" value="keepers">
         <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a Premier League goalkeeper. You score his clean sheets. Most wins.</small></span></label>
+      <label><input type="radio" name="game" id="gameEuro" value="pairs">
+        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his Premier League goals (forwards), assists (midfielders) or clean sheets (defenders and keepers). 10 rounds.</small></span></label>
     </div>
     <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
     <details>
@@ -205,7 +208,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
       </div>
       <div class="panel">
         <div class="label" id="tableLabel">Table</div>
-        <table><thead><tr><th>#</th><th>Player</th><th class="r">Named</th><th class="r">Goals</th></tr></thead><tbody id="table"></tbody></table>
+        <table><thead><tr><th>#</th><th>Player</th><th class="r">Named</th><th class="r" id="scoreHead">Goals</th></tr></thead><tbody id="table"></tbody></table>
       </div>
       <div class="panel">
         <div class="label">Match log</div>
@@ -327,7 +330,7 @@ function advance(g){
   if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){g.pi=0;g.li++}}
   else{g.li++;g.pi=(g.pi+1)%g.players.length}
   skipDead(g);
-  if(g.li>=26)g.phase="over";
+  if(g.li>=roundsOf(g))g.phase="over";
 }
 // letters with no Premier League goalkeeper at all are skipped in Goalkeepers mode
 const NO_KEEPER=["Q","U","X","Y"];
@@ -343,11 +346,16 @@ const posWords=ps=>[...ps].filter(x=>POSN[x]).map(x=>POSN[x].toLowerCase()).join
 const LOW_PENALTY=15;
 const isLow=g=>(g||S).game==="low";
 const isKeep=g=>(g||S).game==="keepers";
-const unit=n=>isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
+const isPairs=g=>(g||S).game==="pairs";
+const PAIR_ROUNDS=10;
+const roundsOf=g=>isPairs(g)?(g.pairs||[]).length:26;
+const pairOf=(g,li)=>(g.pairs||[])[li]||["?","?"];
+const labelAt=(g,li)=>isPairs(g)?pairOf(g,li).join("").toUpperCase():LETTERS[li];
+const unit=n=>isPairs()?(n===1?"point":"points"):isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
 const ptsFor=(g,goals)=>isLow(g)&&goals===0?LOW_PENALTY:goals;
 const ptsOf=t=>t.pts!=null?t.pts:t.goals;
 const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
-const curPos=()=>isKeep()?"G":(S.positions?S.positions[S.li]:null);
+const curPos=()=>isPairs()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
 const randPositions=()=>LETTERS.map(()=>"DMF"[Math.floor(Math.random()*3)]);
 const mkIdx=(list,defPos)=>list.map(([name,goals,pos,alias])=>{
   const t=norm(name).replace(/['’.]/g,"").split(/\s+/).filter(Boolean);
@@ -424,7 +432,7 @@ function renderLobby(){
   });
   $("joinBox").hidden=!!seats[ME];
   $("modeAll").checked=S.mode!=="relay";$("modeRelay").checked=S.mode==="relay";
-  $("gameHigh").checked=!isLow()&&!isKeep();$("gameLow").checked=isLow();$("gameKeep").checked=isKeep();
+  $("gameHigh").checked=!isLow()&&!isKeep();$("gameLow").checked=isLow();$("gameKeep").checked=isKeep();$("gameEuro").checked=isPairs();$("gameHigh").checked=$("gameHigh").checked&&!isPairs();
   $("start").disabled=!list.length;
   $("start").textContent=list.length<2?"Kick off (need 2+ for a match)":"Kick off with "+list.length+" players";
   const link=location.href.split("?")[0].split("#")[0];
@@ -432,10 +440,13 @@ function renderLobby(){
 }
 const myTurn=()=>canPlay(S,ME);
 function renderGame(){
-  const over=S.phase==="over",L=over?"FT":LETTERS[S.li];
+  const PR=isPairs(),pr=pairOf(S,S.li).map(x=>x.toUpperCase());
+  if(PR&&!EIDX)loadEurope().then(render).catch(()=>{});
+  const over=S.phase==="over",L=over?"FT":PR?pr.join(" "):LETTERS[S.li];
+  $("big").classList.toggle("pair",PR&&!over);
   const strip=$("strip");strip.innerHTML="";
-  LETTERS.forEach((x,i)=>{const d=document.createElement("div");d.textContent=x;
-    if(i<S.li)d.className=S.skipped.includes(x)?"done skip":"done";
+  (PR?(S.pairs||[]).map((_,i)=>String(i+1)):LETTERS).forEach((x,i)=>{const d=document.createElement("div");d.textContent=x;
+    if(i<S.li)d.className=S.skipped.includes(PR?labelAt(S,i):x)?"done skip":"done";
     if(i===S.li&&!over)d.className="now";strip.appendChild(d)});
   const key=S.li+":"+S.pi+":"+S.phase,big=$("big");big.textContent=L;
   if(key!==lastKey){big.classList.remove("pop");void big.offsetWidth;big.classList.add("pop");$("pname").value="";hideChoices();$("msg").textContent="";lastKey=key}
@@ -443,18 +454,19 @@ function renderGame(){
   const inGame=S.players.some(p=>p.dev===ME);
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Undo the last turn to keep going, or start a new game."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
-    $("who").textContent=cur?cur.name:"";$("hint").textContent=(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
   $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
   const P=!over&&curPos();$("posPill").hidden=!P;if(P)$("posPill").textContent=POSN[P];
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
-  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…";
+  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…");
   $("undo").disabled=!S.turns.length;
   renderTable();renderLog();
 }
 function renderTable(){
   const order=ranked();
-  $("tableLabel").textContent=isKeep()?"Table · most clean sheets wins":isLow()?"Table · fewest goals wins":"Table · most goals wins";
+  $("scoreHead").textContent=isPairs()?"Points":isKeep()?"Clean sheets":"Goals";
+  $("tableLabel").textContent=isPairs()?"Table · most points wins":isKeep()?"Table · most clean sheets wins":isLow()?"Table · fewest goals wins":"Table · most goals wins";
   $("table").innerHTML=order.map((p,k)=>`<tr class="${S.phase==="playing"&&p.i===S.pi?"active":""}"><td class="pos">${k+1}</td><td>${esc(p.name)}${p.dev===ME?' <span class="tag">You</span>':""}</td><td class="r">${p.count}</td><td class="pts">${p.score}</td></tr>`).join("");
 }
 function renderLog(){
@@ -487,17 +499,23 @@ $("addGuest").onclick=()=>{
   if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
   seats[id]=v;$("guestName").value="";render();
 };
-const pickedGame=()=>$("gameLow").checked?"low":$("gameKeep").checked?"keepers":"high";
-["gameHigh","gameLow","gameKeep"].forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
+const pickedGame=()=>$("gameLow").checked?"low":$("gameKeep").checked?"keepers":$("gameEuro").checked?"pairs":"high";
+["gameHigh","gameLow","gameKeep","gameEuro"].forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
 ["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
 $("clearSquad").onclick=()=>$("clearConfirm").hidden=false;
 $("clearNo").onclick=()=>$("clearConfirm").hidden=true;
 $("clearYes").onclick=()=>{Object.keys(seats).forEach(id=>{send("seat/"+id,null);delete seats[id]});$("clearConfirm").hidden=true;render()};
-$("start").onclick=()=>{
+$("start").onclick=async()=>{
   const list=seatList();
   if(!list.length){flash("Someone needs to join first.","err");return}
+  let pairs=null;
+  if(pickedGame()==="pairs"){
+    flash("Loading European players…","");
+    try{await loadEurope()}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
+    pairs=drawPairs(PAIR_ROUNDS);flash("");
+  }
   commit(g=>{
-    g.phase="playing";g.game=pickedGame();g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
   });
 };
@@ -514,20 +532,21 @@ function showChoices(text,opts){
   opts.forEach(([label,fn,primary])=>{const b=document.createElement("button");b.type="button";b.textContent=label;if(primary)b.className="primary";b.onclick=fn;row.appendChild(b)});
   box.appendChild(row);box.hidden=false;
 }
-function play(name,key,goals){
-  const li=S.li,pi=S.pi,L=LETTERS[li];
+function play(name,key,goals,reveal){
+  const li=S.li,pi=S.pi,L=labelAt(S,li);
   hideChoices();
   if(S.used.includes(key)){flash(name+" has already been named this game.","err");return}
   if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;if(g.used.includes(key))return name+" has already been named this game.";
     const pts=ptsFor(g,goals);
-    g.turns.push({letter:L,pos:g.positions?g.positions[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
+    g.turns.push({letter:L,pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
     g.players[pi].score+=pts;g.players[pi].count++;advance(g)})){
     const m=$("msg");m.className="msg ok";m.innerHTML="";const r=document.createElement("span");r.className="reveal";
-    r.textContent=name+": "+goals+" "+unit(goals)+(isLow()&&goals===0?". That's +"+LOW_PENALTY+"!":"");m.appendChild(r);
+    r.textContent=reveal||(name+": "+goals+" "+unit(goals)+(isLow()&&goals===0?". That's +"+LOW_PENALTY+"!":""));m.appendChild(r);
   }
 }
 const retry=()=>{hideChoices();$("pname").focus();$("pname").select()};
 function submit(){
+  if(isPairs())return submitPairs();
   const q=$("pname").value.trim(),L=LETTERS[S.li],l=L.toLowerCase();
   hideChoices();
   if(!q){flash("Type a player's name first, or pass.","err");return}
@@ -560,9 +579,9 @@ function submit(){
   flash("Can't find a Premier League "+(isKeep()?"goalkeeper":"player")+" called "+q+". Check the spelling and try again, or pass.","err");
 }
 $("submit").onclick=submit;
-$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:LETTERS[li],pos:g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
-  g.turns.push({letter:L,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(L);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=26)g.phase="over"})};
+  const LB=labelAt(g,li);g.turns.push({letter:LB,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
 $("undo").onclick=()=>{viewTable=false;commit(g=>{const t=g.turns.pop();if(!t)return "Nothing to undo.";
   if(t.skip){g.skipped=g.skipped.filter(x=>x!==t.letter);g.li=t.li;g.pi=t.prevPi}
   else{g.li=t.li;g.pi=t.pi;if(t.pass){g.players[t.pi].score-=(t.pts||0)}else{g.players[t.pi].score-=ptsOf(t);g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
@@ -573,6 +592,61 @@ $("noRestart").onclick=()=>$("confirmRow").hidden=true;
 $("yesRestart").onclick=()=>{$("confirmRow").hidden=true;toLobby()};
 $("again").onclick=toLobby;
 $("seeTable").onclick=()=>{viewTable=true;render()};
+
+/* ---------- Two letters: Europe ---------- */
+let EIDX=null,EPAIRS=null,eLoading=null;
+const STAT_WORD={g:"Premier League goals",a:"Premier League assists",cs:"Premier League clean sheets"};
+function loadEurope(){
+  if(EIDX)return Promise.resolve();
+  if(eLoading)return eLoading;
+  eLoading=fetch("europe.txt").then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
+    const list=[],types=[];
+    for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b]=line.split("|");
+      const m=b?b.match(/^(\d+)(g|a|cs)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
+    EIDX=mkIdx(list);EIDX.forEach((p,i)=>p.type=types[i]);
+    EPAIRS={};for(const p of EIDX){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(EPAIRS[k]=EPAIRS[k]||[]).push(p)}
+  }).catch(e=>{eLoading=null;throw e});
+  return eLoading;
+}
+function drawPairs(n){
+  const ok=Object.keys(EPAIRS).filter(k=>EPAIRS[k].length>=5),out=[];
+  while(out.length<n&&ok.length){const k=ok.splice(Math.floor(Math.random()*ok.length),1)[0];out.push([k[0],k[1]])}
+  return out;
+}
+const pairPool=(f,s)=>EIDX.filter(p=>p.first&&p.first[0]===f&&p.letters.has(s));
+function playPair(p){
+  const pts=10+(p.goals||0);
+  const reveal=p.goals?p.name+": 10 + "+p.goals+" "+STAT_WORD[p.type]+" = "+pts+" points":p.name+": 10 points";
+  play(p.name,p.key,pts,reveal);
+}
+function submitPairs(){
+  const q=$("pname").value.trim();hideChoices();
+  if(!q){flash("Type a player's name first, or pass.","err");return}
+  if(!EIDX){flash("Still loading the player list. Try again in a second.","");loadEurope().then(render).catch(()=>{});return}
+  const [f,s2]=pairOf(S,S.li),F=f.toUpperCase(),S2=s2.toUpperCase();
+  const all=candidates(q,EIDX);
+  const fit=all.filter(p=>p.first&&p.first[0]===f&&p.letters.has(s2));
+  if(all.length&&!fit.length){flash((all.length===1?all[0].name:q)+" doesn't match "+F+" "+S2+". First name must start with "+F+" and surname with "+S2+".","err");return}
+  if(fit.length){
+    const free=fit.filter(p=>!S.used.includes(p.key));
+    if(!free.length){flash(fit[0].name+" has already been named this game.","err");return}
+    if(free.length===1){playPair(free[0]);return}
+    const list=[...free].sort((a,b)=>a.name.localeCompare(b.name)).slice(0,16);
+    showChoices("Which one do you mean?",list.map(p=>[p.name,()=>playPair(p)]).concat([["None of these",retry]]));
+    return;
+  }
+  const w=K(q).split(" ");
+  if(w.length<2){flash("Type his first name and surname.","err");return}
+  if(w[0][0]!==f||!w.slice(1).some(x=>x[0]===s2)){flash(q+" doesn't match "+F+" "+S2+".","err");return}
+  const k=K(q),len=k.replace(/ /g,"").length,lim=len>=9?3:len>=5?2:1;let best=9,hits=[];
+  for(const p of pairPool(f,s2)){if(S.used.includes(p.key))continue;
+    const d=Math.min(lev(k,p.key),lev(w[w.length-1],p.lastK)+1);
+    if(d<best){best=d;hits=[p]}else if(d===best)hits.push(p)}
+  if(best<=lim&&hits.length){hits=hits.sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
+    showChoices(hits.length===1?"Did you mean "+hits[0].name+"?":"Did you mean one of these?",
+      hits.map(p=>[hits.length===1?"Yes, "+p.name:p.name,()=>playPair(p),hits.length===1]).concat([["No, let me retype",retry]]));return}
+  flash("Can't find a player called "+q+" in England or Europe's top leagues. Check the spelling and try again, or pass.","err");
+}
 
 /* ---------- turn alerts ---------- */
 const NTFY="https://ntfy.sh/";
@@ -588,7 +662,8 @@ function chime(){try{if(!audioCtx)return;const t=audioCtx.currentTime;
   [[880,0],[1175,.18]].forEach(([f,d])=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=f;
     g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.3,t+d+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+.35);
     o.connect(g).connect(audioCtx.destination);o.start(t+d);o.stop(t+d+.4)})}catch(e){}}
-function turnText(g){const L=LETTERS[g.li],P=isKeep(g)?"G":(g.positions?g.positions[g.li]:null);
+function turnText(g){if(isPairs(g)){const pr=pairOf(g,g.li).map(x=>x.toUpperCase());return "Your turn: name a player with initials "+pr[0]+" "+pr[1];}
+  const L=LETTERS[g.li],P=isKeep(g)?"G":(g.positions?g.positions[g.li]:null);
   return "Your turn: "+(P?"a "+POSN[P].toLowerCase():"a player")+" beginning with "+L;}
 function flashTitle(){if(flashTimer)return;const base=document.title;let on=false;
   flashTimer=setInterval(()=>{document.title=(on=!on)?"🔔 Your turn!":base},1000);
