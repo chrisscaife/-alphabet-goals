@@ -152,7 +152,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
       <label><input type="radio" name="game" id="gameKeep" value="keepers">
         <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a Premier League goalkeeper. You score his clean sheets. Most wins.</small></span></label>
       <label><input type="radio" name="game" id="gameEuro" value="pairs">
-        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers). Defenders add their Premier League clean sheets. 10 rounds.</small></span></label>
+        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders). 10 rounds.</small></span></label>
     </div>
     <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
     <details>
@@ -595,14 +595,14 @@ $("seeTable").onclick=()=>{viewTable=true;render()};
 
 /* ---------- Two letters: Europe ---------- */
 let EIDX=null,EPAIRS=null,eLoading=null;
-const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"Premier League goals",pa:"Premier League assists",pcs:"Premier League clean sheets",dcs:"Premier League clean sheets"};
+const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"Premier League goals",pa:"Premier League assists",pcs:"Premier League clean sheets",dcs:"Premier League clean sheets",ecs:"career clean sheets (estimated)"};
 function loadEurope(){
   if(EIDX)return Promise.resolve();
   if(eLoading)return eLoading;
   eLoading=fetch("europe.txt").then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
     const list=[],types=[];
     for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b]=line.split("|");
-      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
+      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
     EIDX=mkIdx(list);EIDX.forEach((p,i)=>p.type=types[i]);
     EPAIRS={};for(const p of EIDX){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(EPAIRS[k]=EPAIRS[k]||[]).push(p)}
   }).catch(e=>{eLoading=null;throw e});
