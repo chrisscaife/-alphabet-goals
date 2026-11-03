@@ -213,7 +213,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
       <div class="panel">
         <div class="label">Match log</div>
         <div id="log" class="log"></div>
-        <div class="row"><button id="undo" type="button">Undo last turn</button><button id="restart" type="button">New game</button></div>
+        <div class="row"><button id="restart" type="button">New game</button></div>
         <div id="confirmRow" class="row" hidden><span>Start again for everyone? Scores will be lost.</span><button id="yesRestart" class="primary" type="button">Yes, new game</button><button id="noRestart" type="button">Cancel</button></div>
       </div>
     </div>
@@ -462,7 +462,7 @@ function renderGame(){
   if(key!==lastKey){big.classList.remove("pop");void big.offsetWidth;big.classList.add("pop");$("pname").value="";hideChoices();$("msg").textContent="";lastKey=key}
   const cur=S.players[S.pi];
   const inGame=S.players.some(p=>p.dev===ME);
-  if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Undo the last turn to keep going, or start a new game."}
+  if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Start a new game to play again."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
     $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
   $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
@@ -470,7 +470,6 @@ function renderGame(){
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
   if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…");
-  $("undo").disabled=!S.turns.length;
   renderTable();renderLog();
 }
 function renderTable(){
@@ -596,10 +595,6 @@ $("submit").onclick=submit;
 $("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   const LB=labelAt(g,li);g.turns.push({letter:LB,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
-$("undo").onclick=()=>{viewTable=false;commit(g=>{const t=g.turns.pop();if(!t)return "Nothing to undo.";
-  if(t.skip){g.skipped=g.skipped.filter(x=>x!==t.letter);g.li=t.li;g.pi=t.prevPi}
-  else{g.li=t.li;g.pi=t.pi;if(t.pass){g.players[t.pi].score-=(t.pts||0)}else{g.players[t.pi].score-=ptsOf(t);g.players[t.pi].count--;g.used=g.used.filter(u=>u!==(t.key||norm(t.name)))}}
-  g.phase="playing"})};
 const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
 $("noRestart").onclick=()=>$("confirmRow").hidden=true;
