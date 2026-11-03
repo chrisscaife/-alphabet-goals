@@ -166,7 +166,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
           <label><input type="radio" name="mode" id="modeAll" value="all" checked>
             <span><b>Everyone plays every letter</b><small>Each player names someone for A, then everyone does B, and so on.</small></span></label>
           <label><input type="radio" name="mode" id="modeRelay" value="relay">
-            <span><b>Relay through the alphabet</b><small>Player 1 takes A, player 2 takes B, player 3 takes C… one run of the alphabet.</small></span></label>
+            <span><b>Relay through the alphabet</b><small>Player 1 takes A, player 2 takes B, player 3 takes C… one run of the alphabet. The hardest letters (X, Z…) are left out so everyone gets the same number of turns.</small></span></label>
         </div>
         <div class="row"><button id="clearSquad" type="button">Clear the squad</button></div>
         <div id="clearConfirm" class="row" hidden><span>Remove everyone from the squad?</span><button id="clearYes" class="primary" type="button">Yes, clear it</button><button id="clearNo" type="button">Cancel</button></div>
@@ -334,9 +334,19 @@ function advance(g){
 }
 // letters with no Premier League goalkeeper at all are skipped in Goalkeepers mode
 const NO_KEEPER=["Q","U","X","Y"];
+// relay through A–Z: drop the hardest letters so everyone gets the same number of turns
+const DROP_ORDER=["X","Z","Q","Y","U","V","J","K","I","O","E"];
+function relayDrops(game,n){
+  if(game==="pairs"||n<2)return [];
+  const dead=game==="keepers"?NO_KEEPER:[];
+  let left=26-dead.length;const out=[];
+  for(const L of DROP_ORDER){if(left%n===0)break;if(!dead.includes(L)){out.push(L);left--}}
+  return out;
+}
 function skipDead(g){
-  if(g.game!=="keepers")return;
-  while(g.li<26&&NO_KEEPER.includes(LETTERS[g.li])){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
+  if(isPairs(g))return;
+  const dead=(g.game==="keepers"?NO_KEEPER:[]).concat(g.dropped||[]);
+  while(g.li<26&&dead.includes(LETTERS[g.li])){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
 }
 // ---- player lookup ----
 const K=x=>norm(x).replace(/['’`]/g,"").replace(/[-.]/g," ").replace(/\s+/g," ").trim();
@@ -520,6 +530,7 @@ $("start").onclick=async()=>{
   commit(g=>{
     g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
+    g.dropped=g.mode==="relay"?relayDrops(g.game,list.length):[];skipDead(g);
   });
 };
 
