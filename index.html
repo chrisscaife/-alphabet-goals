@@ -152,7 +152,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
       <label><input type="radio" name="game" id="gameKeep" value="keepers">
         <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a Premier League goalkeeper. You score his clean sheets. Most wins.</small></span></label>
       <label><input type="radio" name="game" id="gameEuro" value="pairs">
-        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders). 10 rounds.</small></span></label>
+        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders). 10 rounds (in relay, rounded up so everyone gets the same number of turns).</small></span></label>
     </div>
     <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
     <details>
@@ -512,7 +512,10 @@ $("start").onclick=async()=>{
   if(pickedGame()==="pairs"){
     flash("Loading European players…","");
     try{await loadEurope()}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
-    pairs=drawPairs(PAIR_ROUNDS);flash("");
+    // relay: everyone gets the same number of turns (e.g. 12 rounds for 3 players)
+    const n=list.length,relay=$("modeRelay").checked;
+    let want=PAIR_ROUNDS;if(relay&&n>1)want=Math.ceil(PAIR_ROUNDS/n)*n;
+    pairs=drawPairs(want);if(relay&&n>1&&pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);flash("");
   }
   commit(g=>{
     g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
