@@ -152,7 +152,7 @@ body{margin:0;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bott
       <label><input type="radio" name="game" id="gameKeep" value="keepers">
         <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a Premier League goalkeeper. You score his clean sheets. Most wins.</small></span></label>
       <label><input type="radio" name="game" id="gameEuro" value="pairs">
-        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders). Everyone gets their own letters each turn, 10 turns each.</small></span></label>
+        <span><b>Two letters: Europe</b><small>Each round gives two random letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders). 10 rounds. In relay, everyone gets their own letters and the rounds are rounded up so turns are even (12 for three players).</small></span></label>
     </div>
     <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">Invite mates on WhatsApp</a>
     <details>
@@ -359,7 +359,6 @@ const isKeep=g=>(g||S).game==="keepers";
 const isPairs=g=>(g||S).game==="pairs";
 const PAIR_ROUNDS=10;
 const roundsOf=g=>isPairs(g)?(g.pairs||[]).length:26;
-const pairRounds=g=>Math.max(1,Math.floor(roundsOf(g)/Math.max(1,g.players.length)));
 const pairOf=(g,li)=>(g.pairs||[])[li]||["?","?"];
 const labelAt=(g,li)=>isPairs(g)?pairOf(g,li).join("").toUpperCase():LETTERS[li];
 const unit=n=>isPairs()?(n===1?"point":"points"):isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
@@ -456,9 +455,8 @@ function renderGame(){
   const over=S.phase==="over",L=over?"FT":PR?pr.join(" "):LETTERS[S.li];
   $("big").classList.toggle("pair",PR&&!over);
   const strip=$("strip");strip.innerHTML="";
-  if(PR){const n=Math.max(1,S.players.length),r=Math.floor(S.li/n);
-    for(let i=0;i<pairRounds(S);i++){const d=document.createElement("div");d.textContent=String(i+1);
-      if(over||i<r)d.className="done";else if(i===r)d.className="now";strip.appendChild(d)}}
+  if(PR){(S.pairs||[]).forEach((_,i)=>{const d=document.createElement("div");d.textContent=String(i+1);
+      if(i<S.li)d.className=S.skipped.includes(labelAt(S,i))?"done skip":"done";else if(i===S.li&&!over)d.className="now";strip.appendChild(d)})}
   else LETTERS.forEach((x,i)=>{const d=document.createElement("div");d.textContent=x;
     if(i<S.li)d.className=S.skipped.includes(x)?"done skip":"done";
     if(i===S.li&&!over)d.className="now";strip.appendChild(d)});
@@ -468,8 +466,8 @@ function renderGame(){
   const inGame=S.players.some(p=>p.dev===ME);
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Start a new game to play again."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
-    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(Math.floor(S.li/Math.max(1,S.players.length))+1)+" of "+pairRounds(S):(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
-  $("skipL").hidden=PR;
+    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+  $("skipL").hidden=PR&&S.mode==="relay";
   $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
   const P=!over&&curPos();$("posPill").hidden=!P;if(P)$("posPill").textContent=POSN[P];
   const canAct=!over&&myTurn();
@@ -527,10 +525,11 @@ $("start").onclick=async()=>{
     flash("Loading European players…","");
     try{await loadEurope()}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
     // every player gets their own two letters each turn, PAIR_ROUNDS turns each
-    const n=list.length;pairs=drawPairs(PAIR_ROUNDS*n);if(pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);flash("");
+    const n=list.length,relay=$("modeRelay").checked;
+    pairs=drawPairs(relay&&n>1?Math.ceil(PAIR_ROUNDS/n)*n:PAIR_ROUNDS);if(relay&&n>1&&pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);flash("");
   }
   commit(g=>{
-    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=pickedGame()==="pairs"?"relay":$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
     g.dropped=g.mode==="relay"?relayDrops(g.game,list.length):[];skipDead(g);
   });
@@ -597,7 +596,7 @@ function submit(){
 $("submit").onclick=submit;
 $("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
-  if(isPairs(g))return "Use Pass in Two letters.";
+  if(isPairs(g)&&g.mode==="relay")return "Use Pass in Two letters relay.";
   const LB=labelAt(g,li);g.turns.push({letter:LB,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
 const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
