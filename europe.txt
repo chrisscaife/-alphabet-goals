@@ -164,7 +164,7 @@ Abdoulaye Camara|D|4ecs
 Abdoulaye Coulibaly|F|19g
 Abdoulaye Dabo|M|7a
 Abdoulaye Daffé|F|14g
-Abdoulaye Diagne-Faye|DM|35dcs
+Abdoulaye Diagne-Faye|D|35dcs
 Abdoulaye Diallo|G|23cs
 Abdoulaye Diarra|M|1a
 Abdoulaye Doucouré|M|42a
@@ -199,6 +199,7 @@ Abdukodir Khusanov|D|13ecs
 Abdul Ajagun|M|17a
 Abdul Awudu|F|10g
 Abdul Aziz Nikiema|M|4a
+Abdul Baba|D|0ecs
 Abdul Bai Kamara|D|10ecs
 Abdul Diallo|F|30g
 Abdul Fatawu|M|2pa
@@ -1239,6 +1240,7 @@ Alberto Jiménez|D|96ecs
 Alberto Libertazzi|F|46g
 Alberto Lopo|D|112ecs
 Alberto Lora|M|26a
+Alberto López Moreno|D|0ecs
 Alberto López|G|120cs
 Alberto Malusci|D|63ecs
 Alberto Manga|M|0a
@@ -2083,6 +2085,7 @@ Alexandre Letellier|G|22cs
 Alexandre Licata|F|27g
 Alexandre Marinkov|D|0ecs
 Alexandre Mendy|F|113g
+Alexandre Moreno|D|0ecs
 Alexandre Olliero|G|44cs
 Alexandre Oukidja|G|153cs
 Alexandre Parsemain|F|34g
@@ -2095,7 +2098,7 @@ Alexandre Pierre|G|9cs
 Alexandre Quennoz|D|59ecs
 Alexandre Raineau|D|61ecs
 Alexandre Ramalingom|F|90g
-Alexandre Song|M|18pa
+Alexandre Song|M|32a
 Alexandre Stanic|F|33g
 Alexandre Teklak|D|58ecs
 Alexandre Tégar|D|34ecs
@@ -2345,7 +2348,7 @@ Ali Ülgen|D|28ecs
 Ali İşleyen|D|25ecs
 Ali Şahin Yılmaz|D|18ecs
 Ali Şaşal Vural|G|86cs
-Aliaksandr Hleb|M|12pa
+Aliaksandr Hleb|M|111a
 Alibek Aliev|F|98g
 Alican Karadağ|M|6a
 Alican Tez|F|106g
@@ -3074,7 +3077,7 @@ Andreaw Gravillon|D|72ecs
 Andrei Chindriș|D|26ecs
 Andrei David|M|0a
 Andrei Girotto|D|111ecs
-Andrei Kanchelskis|M|21pa
+Andrei Kanchelskis|M|41a
 Andrei Motoc|D|19ecs
 Andrei Mărginean|M|10a
 Andrei Rațiu|D|60ecs
@@ -3109,18 +3112,18 @@ Andreu Guerao|M|2a
 Andrew Appleby|M|0a
 Andrew Barrowman|F|0pg
 Andrew Buah|F|0g
-Andrew Cole|F|187pg
+Andrew Cole|F|265g
 Andrew Cooke|F|107g
 Andrew Couzens|D|6dcs
 Andrew Crofts|M|19a
 Andrew Davies|D|105ecs
 Andrew Fox|D|55ecs
-Andrew Gray|M|0pa
+Andrew Gray|F|114g
 Andrew Hjulsager|M|50a
 Andrew Howell|D|0ecs
 Andrew Hughes|D|106ecs
 Andrew Irving|M|33a
-Andrew Johnson|F|51pg
+Andrew Johnson|M|2a
 Andrew Jung|F|71g
 Andrew Marie-Sainte|D|8ecs
 Andrew Mills|G|12cs
@@ -3139,7 +3142,7 @@ Andrew Taylor|D|114ecs
 Andrew Tembo|M|3a
 Andrew Todd|D|42dcs
 Andrew Tutte|M|25a
-Andrew Welsh|F|0pg
+Andrew Welsh|M|27a
 Andrew Wooten|F|152g
 Andrews Tetteh|F|43g
 Andrey Arshavin|F|144g
@@ -3165,7 +3168,7 @@ Andrey Malykh|D|49ecs
 Andrey Mendel|M|13a
 Andrey Morozov|M|18a
 Andrey Mostovoy|F|57g
-Andrey Nascimento dos Santos|M|0pa
+Andrey Nascimento dos Santos|M|6a
 Andrey Ospeshinskiy|F|24g
 Andrey Panyukov|F|132g
 Andrey Redya|D|10ecs
@@ -3179,7 +3182,7 @@ Andrey Startsev|M|20a
 Andrey Stepanov|D|27ecs
 Andrey Tikhonov|M|127a
 Andrey Titov|F|17g
-Andrey Voronin|F|5pg
+Andrey Voronin|F|132g
 Andrey Vyskrebentsev|M|5a
 Andrey Yakovlev|D|25ecs
 Andri Fannar Baldursson|M|3a
@@ -3188,6 +3191,9 @@ Andri Rúnar Bjarnason|F|112g
 Andrian Kraev|M|12a
 Andrias Edmundsson|D|25ecs
 Andries Noppert|G|39cs
+Andrii Shevchenko|F|342g
+Andrii Voronin|F|132g
+Andrii Yarmolenko|F|201g
 Andrija Balic|M|19a
 Andrija Bulatovic|M|7a
 Andrija Delibasic|F|61g
@@ -3391,7 +3397,7 @@ André Silva|F|150g
 André Simões|M|13a
 André Soares|M|0a
 André Sousa|M|17a
-André Tavares Gomes|M|4pa
+André Tavares Gomes|M|29a
 André Teles|M|0a
 André Vidigal|F|47g
 André Vilas Boas|M|1a
@@ -3486,7 +3492,7 @@ Andy Hill|D|13dcs
 Andy Hinchcliffe|D|60dcs
 Andy Hunt|F|10pg
 Andy Impey|D|74ecs
-Andy Irving|M|0pa
+Andy Irving|M|33a
 Andy Johnson|M|2a
 Andy Kawaya|F|16g
 Andy Keogh|F|136g
@@ -5260,7 +5266,7 @@ Ben Folami|F|13g
 Ben Foster|G|143cs
 Ben Fox|M|7a
 Ben Futcher|D|20ecs
-Ben Gannon-Doak|FM|1pa
+Ben Gannon-Doak|F|14g
 Ben Garratt|G|72cs
 Ben Garrity|M|10a
 Ben Garuccio|D|43ecs
@@ -5863,6 +5869,7 @@ Bobby Murdoch|M|100xg
 Bobby Olejnik|G|119cs
 Bobby Petta|M|15a
 Bobby Pointon|M|10a
+Bobby Reid|F|71g
 Bobby Robson|M|130xg
 Bobby Thomas|D|50ecs
 Bobby Wales|F|22g
@@ -7438,7 +7445,7 @@ Chris Merrie|M|14a
 Chris Mitchell|D|47ecs
 Chris Mochrie|M|12a
 Chris Morgan|D|133ecs
-Chris Morris|DM|1pa
+Chris Morris|DM|1dcs
 Chris Mueller|F|29g
 Chris Perry|D|85dcs
 Chris Philipps|M|10a
@@ -8018,7 +8025,7 @@ Colin Foster|D|1dcs
 Colin Healy|M|25a
 Colin Hendry|D|77dcs
 Colin Hill|D|4dcs
-Colin Kazim-Richards|FM|3pa
+Colin Kazim-Richards|F|93g
 Colin Kazım-Richards|F|93g
 Colin Kleine-Bekel|D|40ecs
 Colin Larkin|F|59g
@@ -8882,7 +8889,7 @@ Daniel Didavi|M|38a
 Daniel Dimov|M|11a
 Daniel Dodds|D|19ecs
 Daniel Dos Santos|M|23a
-Daniel Drinkwater|M|8pa
+Daniel Drinkwater|M|37a
 Daniel Dudzinski|M|11a
 Daniel Dumbrăvanu|D|22ecs
 Daniel Dziwniel|D|73ecs
@@ -9726,7 +9733,7 @@ David Fisher|F|30g
 David Flakus Bosilj|F|38g
 David Fleurival|M|5a
 David Flitcroft|M|4a
-David Fofana|F|4pg
+David Fofana|F|33g
 David Forde|G|228cs
 David Forniés|D|94ecs
 David Fox|M|47a
@@ -10724,7 +10731,7 @@ Diego Conde|G|35cs
 Diego Contento|D|73ecs
 Diego Coppola|D|34ecs
 Diego Costa|F|199g
-Diego Da Silva Costa|F|0pg
+Diego Da Silva Costa|F|199g
 Diego De Girolamo|F|40g
 Diego Demme|M|25a
 Diego Díaz|M|1a
@@ -11972,7 +11979,7 @@ Egemen Korkmaz|D|99ecs
 Egemen Pehlivan|M|1a
 Eggert Aron Gudmundsson|M|11a
 Eggert Gunnthór Jónsson|M|19a
-Eggert Jónsson|M|0pa
+Eggert Jónsson|M|19a
 Egil Selvik|G|48cs
 Egil Østenstad|F|118g
 Egli Kaja|F|3g
@@ -14086,7 +14093,7 @@ Filip Wojcik|D|47ecs
 Filip Zderic|D|3ecs
 Filip Öhman|D|4ecs
 Filipe Almeida|D|39ecs
-Filipe Andrade Teixeira|M|1pa
+Filipe Andrade Teixeira|F|57g
 Filipe Anunciacão|M|3a
 Filipe Augusto|M|11a
 Filipe Babo|D|11ecs
@@ -14990,7 +14997,7 @@ Fábio Coentrão|D|114ecs
 Fábio De Sousa Silva|D|5ecs
 Fábio Ervões|D|42ecs
 Fábio Faria|D|9ecs
-Fábio Ferreira Vieira|M|5pa
+Fábio Ferreira Vieira|M|40a
 Fábio Fortes|F|51g
 Fábio Gomes|F|79g
 Fábio Guarú|D|15ecs
@@ -15009,7 +15016,7 @@ Fábio Ronaldo|F|10g
 Fábio Rosa|M|0a
 Fábio Santos|D|265ecs
 Fábio Silva|F|48g
-Fábio Soares Silva|F|4pg
+Fábio Soares Silva|F|48g
 Fábio Sturgeon|F|23g
 Fábio Terra|D|3ecs
 Fábio Vianna|D|8ecs
@@ -15452,6 +15459,7 @@ Geoff Hurst|F|290xg
 Geoff Thomas|M|2a
 Geoffray Durbant|F|105g
 Geoffrey Adjet|M|5a
+Geoffrey Bia|F|85g
 Geoffrey Castillion|F|74g
 Geoffrey Dernis|F|46g
 Geoffrey Doumeng|M|13a
@@ -15573,7 +15581,7 @@ Georgios Athanasiadis|G|112cs
 Georgios Ballas|F|6g
 Georgios Barkoglou|M|13a
 Georgios Chalaris|D|10ecs
-Georgios Charalambos Georgiadis|M|0pa
+Georgios Charalambos Georgiadis|F|166g
 Georgios Charalampoglou|F|36g
 Georgios Diamantis|D|9ecs
 Georgios Efrem|F|81g
@@ -17052,10 +17060,11 @@ Hamdi Algü|D|3ecs
 Hamdi Harbaoui|F|192g
 Hamed Diallo|F|81g
 Hamed Dramé|D|1ecs
+Hamed Junior Traorè|F|49g
 Hamed Namouchi|M|6a
 Hamed Traoré|F|49g
 Hamer Bouazza|F|58g
-Hameur Bouazza|F|7pg
+Hameur Bouazza|F|58g
 Hamid Termina|M|0a
 Hamide Lamara|M|0a
 Hamidou Makalou|M|0a
@@ -19469,6 +19478,7 @@ James Montgomery|G|70cs
 James Morrison|M|43a
 James Morris|D|18ecs
 James Morton|M|8a
+James Murphy|F|120g
 James Norris|D|35ecs
 James Norwood|F|210g
 James Olayinka|M|14a
@@ -19489,6 +19499,7 @@ James Scowcroft|F|97g
 James Sharp|D|17ecs
 James Shea|G|91cs
 James Sinclair|DF|0pg
+James Smith|M|31a
 James Spray|F|7g
 James Storer|G|19cs
 James Tarkowski|D|132ecs
@@ -19502,7 +19513,9 @@ James Tunnicliffe|D|35ecs
 James Vaughan|F|122g
 James Vennings|M|3a
 James Vincent|M|20a
+James Walker|G|130cs
 James Wallace|M|17a
+James Walter Wilson|F|66g
 James Ward-Prowse|M|66a
 James Weir|DM|0pa
 James Wilson|D|124ecs
@@ -19522,6 +19535,7 @@ Jamie Carragher|D|254ecs
 Jamie Chandler|M|16a
 Jamie Clapham|D|72ecs
 Jamie Clarke|F|11g
+Jamie Collins|D|0ecs
 Jamie Coyne|D|7ecs
 Jamie Cumming|G|105cs
 Jamie Cureton|F|275g
@@ -20821,6 +20835,7 @@ Joe Collister|G|3cs
 Joe Corona|M|26a
 Joe Culshaw|M|9a
 Joe Day|G|128cs
+Joe Dodoo|F|50g
 Joe Dunne|D|1ecs
 Joe Edwards|D|126ecs
 Joe Enochs|M|2a
@@ -20914,6 +20929,7 @@ Joel Baraye|D|34ecs
 Joel Berhane|M|2a
 Joel Byron|M|0a
 Joel Campbell|F|60g
+Joel Castro Pereira|G|44cs
 Joel Chima Fujita|M|14a
 Joel Coleman|G|42cs
 Joel Colwill|M|3a
@@ -21213,6 +21229,7 @@ John Yeboah|M|33a
 John-Kymani Gordon|F|20g
 John-Patrick Strauß|M|22a
 Johnatan Opoku|M|47a
+Johnathan Williams|M|30a
 Johnbosco Samuel Kalu|F|11g
 Johnly Yfeko|D|10ecs
 Johnnie Jackson|M|37a
@@ -21454,7 +21471,7 @@ Jonathan Ligali|G|27cs
 Jonathan Lind|F|21g
 Jonathan Lund|G|0cs
 Jonathan López|G|78cs
-Jonathan Macken|F|2pg
+Jonathan Macken|F|129g
 Jonathan McDonald|F|198g
 Jonathan Mensah|D|83ecs
 Jonathan Menéndez|F|32g
@@ -21503,7 +21520,7 @@ Jonathan Silva|D|98ecs
 Jonathan Smith|M|20a
 Jonathan Soriano|F|282g
 Jonathan Spector|D|79ecs
-Jonathan Stevenson|F|1pg
+Jonathan Stevenson|F|4g
 Jonathan Svedberg|M|18a
 Jonathan Sánchez|D|98ecs
 Jonathan Tah|D|146ecs
@@ -21520,7 +21537,7 @@ Jonathan Viera|M|95a
 Jonathan Vila|M|2a
 Jonathan Walasiak|F|22g
 Jonathan Walters|F|111g
-Jonathan Williams|M|0pa
+Jonathan Williams|M|30a
 Jonathan Woodgate|D|87ecs
 Jonathan Zebina|D|129ecs
 Jonathan Zongo|F|20g
@@ -21546,7 +21563,7 @@ Jonny Arriba|F|9g
 Jonny Brain|G|47cs
 Jonny Evans|D|162ecs
 Jonny Hayes|M|135a
-Jonny Howson|M|6pa
+Jonny Howson|M|70a
 Jonny Maddison|G|17cs
 Jonny Maxted|G|63cs
 Jonny Otto|D|110ecs
@@ -21908,6 +21925,7 @@ Joseph Gomez|D|31dcs
 Joseph Hatch|F|0g
 Joseph Hungbo|F|9g
 Joseph James|D|2ecs
+Joseph Johnson|D|0ecs
 Joseph Kalulu|D|10ecs
 Joseph Kamwendo|F|5g
 Joseph Lopy|M|17a
@@ -21922,7 +21940,7 @@ Joseph Olowu|D|54ecs
 Joseph Opoku|F|3g
 Joseph Paintsil|F|86g
 Joseph Séry|F|22g
-Joseph Willock|M|1pa
+Joseph Willock|M|29a
 Joseph Yobo|D|116ecs
 Joseph-Désiré Job|F|75g
 Josh Acheampong|D|11ecs
@@ -22146,7 +22164,7 @@ José Carlos|M|14a
 José Carrillo|D|24ecs
 José Casado|M|7a
 José Castillo|G|12cs
-José Cañas|M|0pa
+José Cañas|M|1a
 José Chamot|D|33ecs
 José Cifuentes|M|25a
 José Copete|D|40ecs
@@ -22200,7 +22218,7 @@ José Luis|D|5ecs
 José Luque|M|29a
 José Luís Vidigal|M|7a
 José López|F|32g
-José Malheiro de Sá|G|37pcs
+José Malheiro de Sá|G|147cs
 José Manuel Aira|D|25ecs
 José Manuel Arnáiz|F|63g
 José Manuel Carrasco|D|110ecs
@@ -22570,6 +22588,7 @@ Juan Pablo Garat|D|69ecs
 Juan Pablo Rodríguez|M|33a
 Juan Pablo Vojvoda|D|10ecs
 Juan Pablo Ángel|F|225g
+Juan Paredes|M|27a
 Juan Perea|F|28g
 Juan Pietravallo|M|1a
 Juan Povedano|D|26ecs
@@ -23605,6 +23624,7 @@ Kelton Lima|F|11g
 Kelvin Abrefa|D|15ecs
 Kelvin Amian|D|68ecs
 Kelvin Arase|F|41g
+Kelvin Boateng|M|56a
 Kelvin Davis|G|182cs
 Kelvin Ehibhatiomhan|F|38g
 Kelvin Etuhu|M|10a
@@ -24535,6 +24555,7 @@ Kweku Essien|M|0a
 Kwesi Appiah|F|97g
 Kyan Vaesen|F|23g
 Kyan van Dorp|G|5cs
+Kye Edwards|F|18g
 Kye Rowles|D|32ecs
 Kyel Reid|F|33g
 Kyeong-jung Kim|F|26g
@@ -26971,6 +26992,7 @@ Mads Hansen|F|64g
 Mads Hedenstad|G|60cs
 Mads Hermansen|G|43cs
 Mads Hvilsom|F|76g
+Mads Juel Andersen|D|0ecs
 Mads Junker|F|115g
 Mads Jørgensen|M|11a
 Mads Kaalund|M|21a
@@ -27302,7 +27324,7 @@ Mamady Diambou|M|3a
 Mamady Sidibé|F|43g
 Mamary Traoré|D|21ecs
 Mame Adama Gueye|F|19g
-Mame Biram Diouf|FM|28pg
+Mame Biram Diouf|F|177g
 Mame Diouf|F|177g
 Mamina Badji|F|9g
 Mamor Niang|F|9g
@@ -29547,6 +29569,7 @@ Mats Wieffer|M|33a
 Matt Ball|F|6g
 Matt Blinkhorn|F|64g
 Matt Bloomfield|M|35a
+Matt Bound|D|0ecs
 Matt Busby|M|15xg
 Matt Carbon|D|2dcs
 Matt Carragher|D|39ecs
@@ -29597,6 +29620,7 @@ Matt Ritchie|M|98a
 Matt Smith|F|139g
 Matt Sparrow|M|28a
 Matt Targett|D|82ecs
+Matt Taylor|M|74a
 Matt Thornhill|M|5a
 Matt Tootle|D|75ecs
 Matt Turner|G|41cs
@@ -29735,7 +29759,7 @@ Matthew Alexander|G|1cs
 Matthew Amoah|F|139g
 Matthew Baker|D|31ecs
 Matthew Bates|DM|3dcs
-Matthew Birley|M|0pa
+Matthew Birley|M|0a
 Matthew Bondswell|D|24ecs
 Matthew Booth|D|39ecs
 Matthew Bound|D|15ecs
@@ -29750,14 +29774,14 @@ Matthew Dennis|F|40g
 Matthew Etherington|M|62a
 Matthew Fletcher|F|3g
 Matthew Garbett|M|13a
-Matthew Gilks|G|3pcs
+Matthew Gilks|G|144cs
 Matthew Guillaumier|M|25a
 Matthew Healy|M|15a
 Matthew Henvey|F|4g
 Matthew Hislop|D|0ecs
 Matthew Hoppe|F|24g
-Matthew Jarvis|M|17pa
-Matthew Jones|M|2pa
+Matthew Jarvis|F|46g
+Matthew Jones|M|1a
 Matthew Jurman|D|62ecs
 Matthew Kay|M|0a
 Matthew Kilgallon|D|110ecs
@@ -30172,7 +30196,7 @@ Max Williamsen|D|11ecs
 Max Woltman|F|27g
 Max Woodcock|F|2g
 Max de Waal|M|6a
-Max-Alain Gradel|FM|2pa
+Max-Alain Gradel|F|130g
 Maxen Kapo|M|0a
 Maxence Caqueret|M|24a
 Maxence Carlier|M|5a
@@ -30606,7 +30630,7 @@ Michael Cummins|M|0pa
 Michael Davis|D|16ecs
 Michael Dawson|D|167ecs
 Michael De Marchi|F|48g
-Michael Debeve|M|0pa
+Michael Debeve|M|6a
 Michael Delura|F|26g
 Michael Diethelm|D|40ecs
 Michael Dingsdag|D|83ecs
@@ -31681,6 +31705,7 @@ Mitch Megginson|F|147g
 Mitch Pinnock|F|44g
 Mitch Ward|M|3a
 Mitchel Bakker|D|69ecs
+Mitchel Brown|M|25a
 Mitchel Frame|D|13ecs
 Mitchel Heerkens|M|0a
 Mitchel Keulen|D|17ecs
@@ -32306,7 +32331,7 @@ Mwape Miti|F|40g
 Mychell Chagas|F|179g
 Myenty Abena|D|100ecs
 Mykhailo Meskhi|M|8a
-Mykhailo Mudryk|M|7pa
+Mykhailo Mudryk|F|22g
 Mykhaylo Gurka|D|82ecs
 Mykhaylo Khromey|M|1a
 Mykhaylo Kopolovets|F|21g
@@ -35522,6 +35547,7 @@ Paulo Rangel|F|89g
 Paulo Ribeiro|G|42cs
 Paulo Rink|F|74g
 Paulo Santos|M|1a
+Paulo Silva|D|0ecs
 Paulo Sousa|M|2a
 Paulo Sérgio|F|67g
 Paulo Tavares|M|10a
@@ -35672,6 +35698,7 @@ Pedro Bravo|M|4a
 Pedro Brazão|F|13g
 Pedro Cacho|M|0a
 Pedro Capó|M|2a
+Pedro Cardoso de Lima|D|0ecs
 Pedro Carvalho|D|6ecs
 Pedro Cavadas|G|1cs
 Pedro Cervantes|M|3a
@@ -35772,7 +35799,7 @@ Pelayo Suárez|D|29ecs
 Pelle Boevink|G|41cs
 Pelle Clement|M|41a
 Pelle Mattsson|M|12a
-Pelly Mpanzu|M|0pa
+Pelly Mpanzu|M|39a
 Pelly-Ruddock Mpanzu|M|39a
 Peniel Mlapa|F|134g
 Pep Biel|M|55a
@@ -36167,6 +36194,7 @@ Piermario Morosini|M|6a
 Piero Hincapié|D|53ecs
 Piero Mingoia|M|26a
 Pierpaolo Nodari|F|10g
+Pierre Aubameyang|F|372g
 Pierre Bardy|D|68ecs
 Pierre Bengtsson|D|6ecs
 Pierre Bolchini|G|2cs
@@ -37150,7 +37178,7 @@ Renato Marin|G|22cs
 Renato Neto|M|19a
 Renato Nhaga|M|0a
 Renato Olive|M|5a
-Renato Palma Veiga|M|0pa
+Renato Palma Veiga|D|0ecs
 Renato Pantalon|D|30ecs
 Renato Sanches|M|20a
 Renato Santos|F|35g
@@ -37670,7 +37698,7 @@ Robert Cullen|F|61g
 Robert Davidson|M|0a
 Robert Deak|D|2ecs
 Robert Earnshaw|F|188g
-Robert Elliot|G|8pcs
+Robert Elliot|G|52cs
 Robert Enke|G|89cs
 Robert Ergas|D|17ecs
 Robert Fernández|M|0a
@@ -37680,16 +37708,16 @@ Robert Geller|M|7a
 Robert Glatzel|F|162g
 Robert Gojani|M|45a
 Robert Golemac|D|40ecs
-Robert Green|G|53pcs
+Robert Green|G|188cs
 Robert Gucher|M|44a
 Robert Gumny|D|59ecs
 Robert Górski|D|26ecs
-Robert Hall|F|0pg
+Robert Hall|F|45g
 Robert Heiße|D|10ecs
 Robert Herrmann|M|78a
 Robert Hirsz|F|70g
 Robert Hughes|M|0a
-Robert Hulse|F|8pg
+Robert Hulse|F|126g
 Robert Huth|D|119ecs
 Robert Ibertsberger|D|31ecs
 Robert Ion|M|8a
@@ -37711,6 +37739,7 @@ Robert Ljubicic|M|36a
 Robert Lundström|D|41ecs
 Robert Maah|F|86g
 Robert Mak|F|112g
+Robert Malcolm|D|0ecs
 Robert Malm|F|135g
 Robert Maloney|D|2ecs
 Robert Matejov|D|74ecs
@@ -37718,7 +37747,7 @@ Robert Mazan|D|34ecs
 Robert Mejía|M|2a
 Robert Menzel|D|10ecs
 Robert Middleby|D|17ecs
-Robert Milsom|M|0pa
+Robert Milsom|D|0ecs
 Robert Miskovic|M|9a
 Robert Molenaar|D|25dcs
 Robert Mudrazija|M|27a
@@ -37744,6 +37773,7 @@ Robert Street|F|39g
 Robert Sulewski|D|19ecs
 Robert Szczot|M|16a
 Robert Sánchez|G|76cs
+Robert Taylor|F|68g
 Robert Tesche|M|31a
 Robert Ullathorne|D|19dcs
 Robert Voloder|D|64ecs
@@ -38585,7 +38615,7 @@ Rune Paeshuyse|D|16ecs
 Rune Pedersen|G|45cs
 Rune Van Den Bergh|M|0a
 Rushian Hepburn-Murphy|F|60g
-Rushian Marcus Amari Hepburn-Murphy|F|0pg
+Rushian Marcus Amari Hepburn-Murphy|F|60g
 Ruslan Adzhindzhal|M|54a
 Ruslan Agalarov|M|20a
 Ruslan Apekov|F|36g
@@ -38851,7 +38881,7 @@ Rúben Vezo|D|74ecs
 Rúben Vinagre|D|56ecs
 Rúnar Alex Rúnarsson|G|31cs
 Rúnar Már Sigurjónsson|M|46a
-Rúnar Rúnarsson|G|0pcs
+Rúnar Rúnarsson|G|31cs
 Rúnar Thór Sigurgeirsson|D|15ecs
 Rúrik Gíslason|M|28a
 Rüstam Ahmadzada|F|12g
@@ -40002,7 +40032,7 @@ Serge Simon|M|4a
 Serge Tabekou|F|40g
 Serge-Junior Ngouali|M|15a
 Serge-Philippe Raux-Yao|D|40ecs
-Sergei Kornilenko|F|0pg
+Sergei Kornilenko|F|143g
 Sergei Pareiko|G|148cs
 Sergej Neubauer|M|3a
 Sergej Schmik|D|52ecs
@@ -41337,7 +41367,7 @@ Stephen Acquah|D|7ecs
 Stephen Appiah|M|17a
 Stephen Arthurworrey|D|16ecs
 Stephen Bolma|M|0a
-Stephen Brooker|F|0pg
+Stephen Brooker|F|82g
 Stephen Buer|M|2a
 Stephen Buyl|F|32g
 Stephen Bywater|G|119cs
@@ -41746,6 +41776,7 @@ Sunday Akinbule|F|36g
 Sunday Patrick Okoro|F|0g
 Sune Heilbo|M|0a
 Sung-yong Choi|M|5a
+Sung-yong Ki|M|53a
 Sung-yueng Ki|M|53a
 Suphanat Mueanta|F|45g
 Suso Ruano|D|2ecs
@@ -42488,6 +42519,7 @@ Thomas Drage|M|75a
 Thomas Drescher|D|66ecs
 Thomas Dähne|G|102cs
 Thomas Ebner|M|23a
+Thomas Edwards|D|0ecs
 Thomas Eisfeld|M|35a
 Thomas Ephestion|M|10a
 Thomas Fig|M|0a
@@ -43692,7 +43724,7 @@ Tristan Nydam|M|0a
 Tristan van Gilst|F|36g
 Troels Kløve|M|35a
 Trond Andersen|D|5dcs
-Trond Egil Soltvedt|M|10pa
+Trond Egil Soltvedt|M|10a
 Trond Soltvedt|M|10a
 Trova Boni|M|2a
 Troy Archibald-Henville|D|35ecs
@@ -44090,7 +44122,7 @@ Valentín Pezzolesi|D|0ecs
 Valentín Vada|M|25a
 Valeri Bozhinov|F|116g
 Valeri Domovchiyski|F|140g
-Valeri Emilov Bozhinov|F|1pg
+Valeri Emilov Bozhinov|F|116g
 Valeri Qazaishvili|F|143g
 Valeriane Gvilia|M|30a
 Valeriano Nchama|M|3a
@@ -44224,7 +44256,7 @@ Vasiliy Yanotovskiy|M|1a
 Vasko Kalezic|F|39g
 Vaso Vasic|G|78cs
 Vassilis Borbokis|D|2dcs
-Vassilis Lakis|M|1pa
+Vassilis Lakis|M|23a
 Vasyl Grytsuk|M|45a
 Vasyl Khimich|F|0g
 Vasyl Kobin|D|96ecs
@@ -44644,6 +44676,7 @@ Vitor Hugo|D|160ecs
 Vitor Meer|D|19ecs
 Vitor Pernambuco|F|23g
 Vitor Reis|D|13ecs
+Vitor de Oliveira Nunes dos Reis|D|0ecs
 Vittorio Agostinelli|M|4a
 Vittorio Bernardo|F|60g
 Vittorio Continella|M|4a
@@ -45158,7 +45191,7 @@ William Balikwisha|M|10a
 William Batista|F|60g
 William Benard|M|1a
 William Bianda|D|20ecs
-William Buckley|M|2pa
+William Buckley|F|47g
 William Bøving|F|50g
 William Carvalho|M|32a
 William Clem|M|8a
@@ -45167,6 +45200,7 @@ William Easton|F|5g
 William Edjenguélé|D|85ecs
 William Eskelinen|G|59cs
 William Fabro|M|2a
+William Fish|D|0ecs
 William Gallas|D|188ecs
 William Gomes|F|7g
 William Gros|F|30g
@@ -45201,7 +45235,7 @@ William Rovida|G|38cs
 William Rémy|D|57ecs
 William Saliba|D|91ecs
 William Sea|F|21g
-William Smallbone|M|2pa
+William Smallbone|M|24a
 William Smith|M|13a
 William Soares|M|5a
 William Stanger|M|0a
@@ -45339,7 +45373,7 @@ Xabier Castillo|D|79ecs
 Xabier Eizagirre|M|0a
 Xabier Etxebarria|D|82ecs
 Xabier Jáuregi|G|38cs
-Xande Nascimento da Costa Silva|M|0pa
+Xande Nascimento da Costa Silva|F|32g
 Xande Silva|F|32g
 Xander Blomme|M|4a
 Xander Houtkoop|F|45g
@@ -46062,6 +46096,7 @@ Yves-Simon Pambou|M|5a
 Yvo van Engelen|D|10ecs
 Yvon Mvogo|G|102cs
 Yáser Asprilla|F|16g
+Yéremi Pino|F|22g
 Yéremy Pino|F|22g
 Yücel Gürol|D|12ecs
 Yüksel Güler|F|2g
