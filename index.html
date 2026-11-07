@@ -607,14 +607,14 @@ $("seeTable").onclick=()=>{viewTable=true;render()};
 
 /* ---------- Two letters: Europe ---------- */
 let EIDX=null,EPAIRS=null,eLoading=null;
-const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"Premier League goals",pa:"Premier League assists",pcs:"Premier League clean sheets",dcs:"Premier League clean sheets",ecs:"career clean sheets (estimated)",xg:"career goals (approx.)",xcs:"career clean sheets (estimated)"};
+const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"Premier League goals",pa:"Premier League assists",pcs:"Premier League clean sheets",dcs:"Premier League clean sheets",ecs:"career clean sheets (estimated)",xg:"career goals (approx.)",ea:"career assists (estimated)",xcs:"career clean sheets (estimated)"};
 function loadEurope(){
   if(EIDX)return Promise.resolve();
   if(eLoading)return eLoading;
   eLoading=fetch("europe.txt").then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
     const list=[],types=[];
     for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b]=line.split("|");
-      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
+      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs|ea)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
     EIDX=mkIdx(list);EIDX.forEach((p,i)=>p.type=types[i]);
     EPAIRS={};for(const p of EIDX){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(EPAIRS[k]=EPAIRS[k]||[]).push(p)}
   }).catch(e=>{eLoading=null;throw e});
