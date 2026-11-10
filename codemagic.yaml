@@ -1,0 +1,73 @@
+# Codemagic builds Alphabet Goals for both stores in the cloud (no Mac needed).
+# One-off setup in Codemagic (see RELEASE.md):
+#   - App Store Connect API key integration named "AlphabetGoalsASC"
+#   - Android keystore uploaded under Code signing identities with reference "alphabet_goals_keystore"
+#   - Environment group "google_play" holding GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+#   - Environment variable APP_STORE_APPLE_ID (the app's numeric Apple ID from App Store Connect)
+workflows:
+  ios-release:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: AlphabetGoalsASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.chrisscaife.alphabetgoals
+      node: 22
+      xcode: latest
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Copy the game into the iOS project
+        script: npx cap sync ios
+      - name: Set up code signing
+        script: xcode-project use-profiles --project "$XCODE_PROJECT"
+      - name: Set the build number
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          cd ios/App && agvtool new-version -all $((LATEST + 1))
+      - name: Build the .ipa
+        script: xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
+
+  android-release:
+    name: Android → Play (internal testing)
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - alphabet_goals_keystore
+      groups:
+        - google_play
+      node: 22
+      java: 21
+      vars:
+        PACKAGE_NAME: com.chrisscaife.alphabetgoals
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Copy the game into the Android project
+        script: npx cap sync android
+      - name: Build the app bundle
+        script: |
+          LATEST=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks internal,alpha,beta,production || echo 0)
+          cd android && ./gradlew bundleRelease -PversionCode=$((LATEST + 1)) -PversionName=1.0.$((LATEST + 1))
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

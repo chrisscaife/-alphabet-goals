@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Alphabet Goals</title>
+<meta name="description" content="The football alphabet game. Name a footballer for every letter, score their goals, and beat your mates.">
+<meta property="og:title" content="Alphabet Goals ⚽">
+<meta property="og:description" content="The football alphabet game. Name a footballer for every letter, score their goals, and beat your mates. Tap to join.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/share.png">
+<meta name="theme-color" content="#0d2a1c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alphabet Goals">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Alphabet <span>Goals</span></h1>
+      <div class="conn"><span id="dot" class="dot"></span><span id="connText">Ready</span></div>
+    </div>
+    <div class="topbtns">
+      <button id="howBtn" class="ghost" type="button" aria-haspopup="dialog">How to play</button>
+      <button id="leaveBtn" class="ghost" type="button" hidden>Home</button>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section id="home" class="panel home">
+    <p class="lede">Name a footballer for every letter. Score their goals. Beat your mates.</p>
+    <label class="label" for="homeName">Your name</label>
+    <input id="homeName" type="text" placeholder="e.g. Chris" maxlength="24" autocomplete="given-name">
+    <button id="newGame" class="primary big-btn" type="button">Start a new game</button>
+    <button id="backGame" class="big-btn" type="button" hidden>Back to your last game</button>
+    <button id="practice" class="big-btn" type="button">Practise on your own</button>
+    <div id="homeMsg" class="msg" role="status"></div>
+    <p class="note">A new game gets its own private link. Send it to your mates on WhatsApp and they can join from the app or any phone browser. No accounts needed.</p>
+    <p class="footlinks"><a href="privacy.html">Privacy</a> · <a href="support.html">Help &amp; contact</a></p>
+  </section>
+
+  <!-- LOBBY -->
+  <section id="lobby" class="panel" hidden>
+    <div id="inviteBox" class="invite">
+      <div class="label">Invite your mates</div>
+      <div class="invite-row">
+        <a id="waShare" class="wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        <button id="shareBtn" type="button">Share link</button>
+        <button id="copyLink" type="button">Copy link</button>
+      </div>
+      <div id="inviteMsg" class="msg" role="status"></div>
+    </div>
+    <div id="practiceNote" class="note" hidden>Practice game on this phone only. Pick a mode and kick off.</div>
+    <div id="joinBox" class="joinbox">
+      <label class="label" for="myName">Your name</label>
+      <input id="myName" type="text" placeholder="e.g. Chris" maxlength="24" autocomplete="given-name">
+      <button id="join" class="primary big-btn" type="button">Join the game</button>
+    </div>
+    <div class="label">Squad</div>
+    <div id="seats" class="seats"></div>
+    <div class="label">Game mode</div>
+    <div class="mode">
+      <label><input type="radio" name="game" id="gameHigh" value="high" checked>
+        <span><b>Most goals wins</b><small>Name the biggest goalscorers you can, in the position the game asks for. Highest total wins.</small></span></label>
+      <label><input type="radio" name="game" id="gameLow" value="low">
+        <span><b>Fewest goals wins</b><small>Name players who barely scored. Lowest total wins, but a player who never scored (or a pass) adds 15.</small></span></label>
+      <label><input type="radio" name="game" id="gameKeep" value="keepers">
+        <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a goalkeeper. You score his clean sheets. Most wins.</small></span></label>
+      <label><input type="radio" name="game" id="gameEuro" value="pairs">
+        <span><b>Two letters: Europe</b><small>Each round gives two letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders).</small></span></label>
+    </div>
+    <details id="moreOpts">
+      <summary class="label" style="cursor:pointer">More options</summary>
+      <div class="opts-body">
+        <div class="row" id="guestRow">
+          <input id="guestName" type="text" placeholder="Add someone without a phone" maxlength="24" style="flex:1;min-width:140px">
+          <button id="addGuest" type="button">Add</button>
+        </div>
+        <div class="mode">
+          <label><input type="radio" name="mode" id="modeAll" value="all" checked>
+            <span><b>Everyone plays every letter</b><small>Each player names someone for A, then everyone does B, and so on.</small></span></label>
+          <label><input type="radio" name="mode" id="modeRelay" value="relay">
+            <span><b>Relay through the alphabet</b><small>Player 1 takes A, player 2 takes B, player 3 takes C… The hardest letters are left out so everyone gets the same number of turns.</small></span></label>
+        </div>
+        <div class="row" id="clearRow"><button id="clearSquad" type="button">Clear the squad</button></div>
+        <div id="clearConfirm" class="row" hidden><span>Remove everyone from the squad?</span><button id="clearYes" class="primary" type="button">Yes, clear it</button><button id="clearNo" type="button">Cancel</button></div>
+      </div>
+    </details>
+    <p id="soloHint" class="note" hidden>Waiting for mates? Send them the invite above. You can also kick off on your own.</p>
+    <button id="start" class="primary big-btn" type="button">Kick off</button>
+    <div id="lobbyMsg" class="msg" role="status"></div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" hidden>
+    <div class="wrap">
+      <div id="strip" class="strip" aria-label="Progress"></div>
+      <div class="panel">
+        <div class="turn">
+          <div id="big" class="bigletter" aria-live="polite">A</div>
+          <div>
+            <div class="label" id="onball">On the ball</div>
+            <div id="who" class="who"></div>
+            <div id="hint" class="hint"></div>
+            <div id="posPill" class="pos-pill" hidden></div>
+          </div>
+        </div>
+        <div id="controls">
+          <div class="field">
+            <label class="label" for="pname">Player's name</label>
+            <input id="pname" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type a player's name">
+          </div>
+          <div id="choices" class="choices" hidden></div>
+          <div class="row" style="margin-top:12px">
+            <button id="submit" class="primary" type="button">Submit</button>
+            <button id="pass" type="button">Pass (0)</button>
+            <button id="skipL" type="button">Skip letter</button>
+          </div>
+        </div>
+        <div id="waiting" class="waiting" hidden></div>
+        <div id="msg" class="msg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="panel">
+        <div class="label" id="tableLabel">Table</div>
+        <table><thead><tr><th>#</th><th>Player</th><th class="r">Named</th><th class="r" id="scoreHead">Goals</th></tr></thead><tbody id="table"></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="label">Match log</div>
+        <div id="log" class="log"></div>
+        <div class="row"><button id="restart" type="button">New game</button></div>
+        <div id="confirmRow" class="row" hidden><span>Start again for everyone? Scores will be lost.</span><button id="yesRestart" class="primary" type="button">Yes, new game</button><button id="noRestart" type="button">Cancel</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="panel final" hidden>
+    <div class="label">Full time</div>
+    <div id="winner" class="who"></div>
+    <p id="winSub" class="sub"></p>
+    <div class="row" style="justify-content:center"><button id="again" class="primary" type="button">Play again</button><button id="seeTable" type="button">See the table</button></div>
+  </section>
+
+  <!-- TURN ALERTS -->
+  <details id="alerts" class="panel alerts" hidden>
+    <summary><span class="label">🔔 Turn alerts</span><span id="alertState" class="astate"></span></summary>
+    <div class="abody">
+      <div class="astep">
+        <b>While the game is open</b>
+        <p>Sound, buzz and a pop-up when it's your go.</p>
+        <button id="alertOn" class="primary" type="button">Turn on alerts</button>
+        <div id="alertOnMsg" class="msg" role="status"></div>
+      </div>
+      <div class="astep" id="ntfyStep">
+        <b>On your lock screen (even with the game closed)</b>
+        <p>Optional. Uses the free <b>ntfy</b> app. No account needed.</p>
+        <ol>
+          <li>Install ntfy: <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a></li>
+          <li id="stepAndroid">Tap <a id="ntfyDeep" class="btnlink" href="#">Subscribe in ntfy</a></li>
+          <li id="stepIos"><span id="stepIosLead">Copy your alert code</span>, open ntfy, tap <b>+</b>, paste it and tap <b>Subscribe</b>:
+            <div class="share" style="margin-top:6px"><input id="ntfyTopic" type="text" readonly aria-label="Your alert code"><button id="copyTopic" type="button">Copy</button></div></li>
+          <li><button id="ntfyTest" type="button">Send me a test alert</button></li>
+        </ol>
+        <div id="ntfyMsg" class="msg" role="status"></div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<!-- HOW TO PLAY -->
+<dialog id="howto" aria-labelledby="howtoTitle">
+  <div class="dlg">
+    <h2 id="howtoTitle">How to play</h2>
+    <ol class="how">
+      <li><b>Start a game</b> and send the link to your mates. Everyone types their name and joins. Anyone can kick off.</li>
+      <li><b>Each turn</b> the game shows a letter and a position, e.g. <i>U · Defender</i>. Name a player whose surname starts with that letter, like Unsworth.</li>
+      <li><b>Goals are revealed after you submit</b>, so nobody can look them up first. They go on your score.</li>
+      <li><b>No repeats.</b> Once a player has been named, nobody can use him again. Stuck? Pass, or skip the letter for everyone.</li>
+      <li><b>Typos are fine.</b> The game asks "Did you mean…?" when you're close.</li>
+    </ol>
+    <h3>Game modes</h3>
+    <ul class="how">
+      <li><b>Most goals wins</b> uses goals in England's top division since 1992.</li>
+      <li><b>Fewest goals wins:</b> lowest total wins, but a player who never scored, or a pass, costs 15.</li>
+      <li><b>Goalkeepers</b> scores clean sheets.</li>
+      <li><b>Two letters: Europe:</b> match a first-name and surname letter. 10 points plus career goals, assists or clean sheets.</li>
+    </ul>
+    <p class="note">Stats come from public football records up to the start of the 2026/27 season. Some older players' numbers are estimates and are marked as such. Not affiliated with any league or club.</p>
+    <form method="dialog"><button class="primary big-btn" type="submit">Got it</button></form>
+  </div>
+</dialog>
+
+<script src="vendor/mqtt.min.js"></script>
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-database-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/net.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
