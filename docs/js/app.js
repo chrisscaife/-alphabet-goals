@@ -233,6 +233,7 @@ function renderLog(){
 function renderResult(){
   const order=ranked();
   if(!order.length){$("winner").textContent="Full time";$("winSub").textContent="";return}
+  if(order.length===1){$("winner").textContent="You scored "+order[0].score;$("winSub").textContent=PRACTICE?"Practice complete. Start a new game to take on your mates.":"";return}
   const top=order.filter(p=>p.score===order[0].score);
   $("winner").textContent=top.length>1?"Draw: "+top.map(p=>p.name).join(" & "):order[0].name+" wins";
   $("winSub").textContent=order.map(p=>p.name+" "+p.score).join(" · ");
