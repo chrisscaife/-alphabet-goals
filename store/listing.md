@@ -26,11 +26,12 @@ The football alphabet game you play with your mates.
 
 Start a game, send the private link on WhatsApp, and take it in turns to name a footballer for every letter from A to Z. Each letter also asks for a position (defender, midfielder or striker). Name a player who fits, then watch his goals get revealed and added to your score. Nobody sees the numbers until you've answered, so no looking them up.
 
-FOUR WAYS TO PLAY
+SIX WAYS TO PLAY
 • Most goals wins: go big. Strikers who scored hundreds are gold.
 • Fewest goals wins: name the players who barely scored. But pick someone who never scored and it costs you 15.
 • Goalkeepers: every letter is a keeper, and you score his clean sheets.
 • Two letters: Europe: you're given two letters like Z Z. Name any player from England or Europe with those initials (Zinédine Zidane!). 10 points plus his career goals, assists or clean sheets.
+• International edition: players from every national team, with one letter or two. Forwards score their international goals; everyone else scores their caps.
 
 BUILT FOR PLAYING WITH FRIENDS
 • Every game gets its own private link. Friends can join from the app or any phone browser.
@@ -41,7 +42,7 @@ BUILT FOR PLAYING WITH FRIENDS
 • Practise on your own any time, even offline.
 
 THOUSANDS OF PLAYERS
-Over 2,800 goalscorers from England's top division since 1992, 500 goalkeepers, and nearly 47,000 players from across Europe's top leagues, plus legends from earlier eras.
+Over 2,800 goalscorers from England's top division since 1992, 500 goalkeepers, nearly 47,000 players from across Europe's top leagues and 12,000 international players, plus legends from earlier eras.
 
 Free. No adverts. No accounts.
 

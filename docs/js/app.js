@@ -74,7 +74,7 @@ const NO_KEEPER=["Q","U","X","Y"];
 // relay through A–Z: drop the hardest letters so everyone gets the same number of turns
 const DROP_ORDER=["X","Z","Q","Y","U","V","J","K","I","O","E"];
 function relayDrops(game,n){
-  if(game==="pairs"||n<2)return [];
+  if(game==="pairs"||game==="intl2"||n<2)return [];
   const dead=game==="keepers"?NO_KEEPER:[];
   let left=26-dead.length;const out=[];
   for(const L of DROP_ORDER){if(left%n===0)break;if(!dead.includes(L)){out.push(L);left--}}
@@ -93,12 +93,13 @@ const posWords=ps=>[...ps].filter(x=>POSN[x]).map(x=>POSN[x].toLowerCase()).join
 const LOW_PENALTY=15;
 const isLow=g=>(g||S).game==="low";
 const isKeep=g=>(g||S).game==="keepers";
-const isPairs=g=>(g||S).game==="pairs";
+const isIntl=g=>String((g||S).game||"").startsWith("intl");
+const isPairs=g=>{const x=(g||S).game;return x==="pairs"||x==="intl2"};
 const PAIR_ROUNDS=10;
 const roundsOf=g=>isPairs(g)?(g.pairs||[]).length:26;
 const pairOf=(g,li)=>(g.pairs||[])[li]||["?","?"];
 const labelAt=(g,li)=>isPairs(g)?pairOf(g,li).join("").toUpperCase():LETTERS[li];
-const unit=n=>isPairs()?(n===1?"point":"points"):isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
+const unit=n=>isPairs()||isIntl()?(n===1?"point":"points"):isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
 const ptsFor=(g,goals)=>isLow(g)&&goals===0?LOW_PENALTY:goals;
 const ptsOf=t=>t.pts!=null?t.pts:t.goals;
 const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
@@ -114,7 +115,7 @@ const mkIdx=(list,defPos)=>list.map(([name,goals,pos,alias])=>{
   return {name,goals,aliasK,pos:pos||defPos||"",key:K(name),key2:sf?K(sur.join(" ")+" "+t[0]):"",alt:sf?K(t[0]):"",first:t.length>1?K(t[0]):"",surK:K(sur.join(" ")),lastK:K(t[t.length-1]),letters};
 });
 const IDX=mkIdx(PL),KIDX=mkIdx(KP,"G");
-const pool=()=>isKeep()?KIDX:IDX;
+const pool=()=>isIntl()?((curSet()||{}).idx||[]):isKeep()?KIDX:IDX;
 function genericLetterOK(q,L){
   const w=K(q).split(" ").filter(Boolean),l=L.toLowerCase();
   if(!w.length)return false;
@@ -123,7 +124,12 @@ function genericLetterOK(q,L){
 }
 function candidates(q,idx){idx=idx||pool();
   const k=K(q);if(!k)return [];
-  const exact=idx.filter(p=>p.key===k||p.key2===k||(p.aliasK&&p.aliasK===k));if(exact.length)return exact;
+  const exact=idx.filter(p=>p.key===k||p.key2===k||(p.aliasK&&p.aliasK===k));
+  if(exact.length){
+    // one word that is both a one-name player and a surname (Ronaldo) -> offer both
+    if(!k.includes(" ")){const more=idx.filter(p=>!exact.includes(p)&&(p.surK===k||p.lastK===k));if(more.length)return exact.concat(more)}
+    return exact;
+  }
   const qt=k.split(" ");
   let m=idx.filter(p=>p.surK===k||p.lastK===k||p.alt===k);
   if(qt.length>1){
@@ -182,7 +188,7 @@ function renderLobby(){
   });
   $("joinBox").hidden=!!seats[ME];
   $("modeAll").checked=S.mode!=="relay";$("modeRelay").checked=S.mode==="relay";
-  $("gameHigh").checked=!isLow()&&!isKeep();$("gameLow").checked=isLow();$("gameKeep").checked=isKeep();$("gameEuro").checked=isPairs();$("gameHigh").checked=$("gameHigh").checked&&!isPairs();
+  GAME_RADIOS.forEach(id=>$(id).checked=$(id).value===(S.game||"high"));
   $("start").disabled=!list.length;
   $("start").textContent=list.length<2?"Kick off":"Kick off with "+list.length+" players";
   $("soloHint").hidden=PRACTICE||list.length>1;
@@ -195,7 +201,7 @@ function renderLobby(){
 const myTurn=()=>canPlay(S,ME);
 function renderGame(){
   const PR=isPairs(),pr=pairOf(S,S.li).map(x=>x.toUpperCase());
-  if(PR&&!EIDX)loadEurope().then(render).catch(()=>{});
+  if((PR||isIntl())&&!(curSet()||{}).idx)loadFor(S).then(render).catch(()=>{});
   const over=S.phase==="over",L=over?"FT":PR?pr.join(" "):LETTERS[S.li];
   $("big").classList.toggle("pair",PR&&!over);
   const strip=$("strip");strip.innerHTML="";
@@ -221,8 +227,8 @@ function renderGame(){
 }
 function renderTable(){
   const order=ranked();
-  $("scoreHead").textContent=isPairs()?"Points":isKeep()?"Clean sheets":"Goals";
-  $("tableLabel").textContent=isPairs()?"Table · most points wins":isKeep()?"Table · most clean sheets wins":isLow()?"Table · fewest goals wins":"Table · most goals wins";
+  $("scoreHead").textContent=isPairs()||isIntl()?"Points":isKeep()?"Clean sheets":"Goals";
+  $("tableLabel").textContent=isPairs()||isIntl()?"Table · most points wins":isKeep()?"Table · most clean sheets wins":isLow()?"Table · fewest goals wins":"Table · most goals wins";
   $("table").innerHTML=order.map((p,k)=>`<tr class="${S.phase==="playing"&&p.i===S.pi?"active":""}"><td class="pos">${k+1}</td><td>${esc(p.name)}${p.dev===ME?' <span class="tag">You</span>':""}</td><td class="r">${p.count}</td><td class="pts">${p.score}</td></tr>`).join("");
 }
 function renderLog(){
@@ -256,8 +262,9 @@ $("addGuest").onclick=()=>{
   if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
   seats[id]=v;$("guestName").value="";render();
 };
-const pickedGame=()=>$("gameLow").checked?"low":$("gameKeep").checked?"keepers":$("gameEuro").checked?"pairs":"high";
-["gameHigh","gameLow","gameKeep","gameEuro"].forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
+const GAME_RADIOS=["gameHigh","gameLow","gameKeep","gameEuro","gameIntl1","gameIntl2"];
+const pickedGame=()=>{const r=GAME_RADIOS.find(id=>$(id).checked);return r?$(r).value:"high"};
+GAME_RADIOS.forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
 ["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
 $("clearSquad").onclick=()=>$("clearConfirm").hidden=false;
 $("clearNo").onclick=()=>$("clearConfirm").hidden=true;
@@ -266,12 +273,16 @@ $("start").onclick=async()=>{
   const list=seatList();
   if(!list.length){flash("Someone needs to join first.","err");return}
   let pairs=null;
-  if(pickedGame()==="pairs"){
-    flash("Loading European players…","");
-    try{await loadEurope()}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
-    // every player gets their own two letters each turn, PAIR_ROUNDS turns each
-    const n=list.length,relay=$("modeRelay").checked;
-    pairs=drawPairs(relay&&n>1?Math.ceil(PAIR_ROUNDS/n)*n:PAIR_ROUNDS);if(relay&&n>1&&pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);flash("");
+  const gm=pickedGame();
+  if(gm==="pairs"||gm.startsWith("intl")){
+    flash(gm.startsWith("intl")?"Loading international players…":"Loading European players…","");
+    let set;try{set=await loadFor({game:gm})}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
+    if(gm!=="intl1"){
+      // every player gets their own two letters each turn, PAIR_ROUNDS turns each
+      const n=list.length,relay=$("modeRelay").checked;
+      pairs=drawPairs(relay&&n>1?Math.ceil(PAIR_ROUNDS/n)*n:PAIR_ROUNDS,set);if(relay&&n>1&&pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);
+    }
+    flash("");
   }
   commit(g=>{
     g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
@@ -323,21 +334,21 @@ function submit(){
   if(fit.length&&!posFit.length){
     flash(fit.length===1?fit[0].name+" is listed as a "+posWords(fit[0].pos)+", not a "+want+".":"None of the players called "+q+" are listed as a "+want+".","err");return}
   if(posFit.length){
-    const free=posFit.filter(p=>!S.used.includes(p.key));
+    const free=posFit.filter(p=>!S.used.includes(uidOf(p)));
     if(!free.length){flash(fit[0].name+" has already been named this game.","err");return}
-    if(free.length===1){play(free[0].name,free[0].key,free[0].goals);return}
+    if(free.length===1){playOne(free[0]);return}
     const list=[...free].sort((a,b)=>a.name.localeCompare(b.name)).slice(0,16);
-    showChoices("Which one do you mean?",list.map(p=>[p.name,()=>play(p.name,p.key,p.goals)]).concat([["None of these",retry]]));
+    showChoices("Which one do you mean?",list.map(p=>[plabel(p),()=>playOne(p)]).concat([["None of these",retry]]));
     return;
   }
   if(!genericLetterOK(q,L)){flash(q+"'s surname doesn't start with "+L+".","err");return}
-  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(p.key)&&(!P||!p.pos||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
+  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(uidOf(p))&&(!P||!p.pos||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
   if(fz.length){
     showChoices(fz.length===1?"Did you mean "+fz[0].name+"?":"Did you mean one of these?",
-      fz.map(p=>[fz.length===1?"Yes, "+p.name:p.name,()=>play(p.name,p.key,p.goals),fz.length===1]).concat([["No, let me retype",retry]]));
+      fz.map(p=>[fz.length===1?"Yes, "+plabel(p):plabel(p),()=>playOne(p),fz.length===1]).concat([["No, let me retype",retry]]));
     return;
   }
-  flash("Can't find "+(isKeep()?"a goalkeeper":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
+  flash("Can't find "+(isKeep()?"a goalkeeper":isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
 }
 $("submit").onclick=submit;
 $("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
@@ -351,59 +362,74 @@ $("yesRestart").onclick=()=>{$("confirmRow").hidden=true;toLobby()};
 $("again").onclick=toLobby;
 $("seeTable").onclick=()=>{viewTable=true;render()};
 
-/* ---------- Two letters: Europe ---------- */
-let EIDX=null,EPAIRS=null,eLoading=null;
-const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"top-flight goals in England",pa:"top-flight assists in England",pcs:"top-flight clean sheets in England",dcs:"top-flight clean sheets in England",ecs:"career clean sheets (estimated)",xg:"career goals (approx.)",ea:"career assists (estimated)",xcs:"career clean sheets (estimated)"};
-function loadEurope(){
-  if(EIDX)return Promise.resolve();
-  if(eLoading)return eLoading;
-  eLoading=fetch("europe.txt").then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
-    const list=[],types=[];
-    for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b]=line.split("|");
-      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs|ea)$/):null;list.push([name,m?+m[1]:0,pos||""]);types.push(m?m[2]:"")}
-    EIDX=mkIdx(list);EIDX.forEach((p,i)=>p.type=types[i]);
-    EPAIRS={};for(const p of EIDX){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(EPAIRS[k]=EPAIRS[k]||[]).push(p)}
-  }).catch(e=>{eLoading=null;throw e});
-  return eLoading;
+/* ---------- Two letters (Europe) and International edition ---------- */
+const SETS={};
+const setFile=g=>isIntl(g)?"intl.txt":"europe.txt";
+const curSet=()=>SETS[setFile(S)];
+const uidOf=p=>p.uid||p.key;
+const plabel=p=>p.country?p.name+" ("+p.country+")":p.name;
+const STAT_WORD={g:"career goals",a:"career assists",cs:"career clean sheets",pg:"top-flight goals in England",pa:"top-flight assists in England",pcs:"top-flight clean sheets in England",dcs:"top-flight clean sheets in England",ecs:"career clean sheets (estimated)",xg:"career goals (approx.)",ea:"career assists (estimated)",xcs:"career clean sheets (estimated)",ig:"international goals",caps:"international caps"};
+function loadFor(g){
+  const file=setFile(g);
+  if(SETS[file]&&SETS[file].idx)return Promise.resolve(SETS[file]);
+  if(SETS[file]&&SETS[file].loading)return SETS[file].loading;
+  const st=SETS[file]={};
+  st.loading=fetch(file).then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
+    const list=[],extra=[];
+    for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b,country]=line.split("|");
+      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs|ea|ig|caps)$/):null;list.push([name,m?+m[1]:0,pos||""]);extra.push([m?m[2]:"",country||""])}
+    st.idx=mkIdx(list);
+    st.idx.forEach((p,i)=>{p.type=extra[i][0];if(extra[i][1]){p.country=extra[i][1];p.uid=p.key+"|"+K(p.country)}});
+    st.pairs={};for(const p of st.idx){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(st.pairs[k]=st.pairs[k]||[]).push(p)}
+    return st;
+  }).catch(e=>{delete SETS[file];throw e});
+  return st.loading;
 }
-function drawPairs(n){
-  const ok=Object.keys(EPAIRS).filter(k=>EPAIRS[k].length>=15),out=[];
+function drawPairs(n,set){
+  const ok=Object.keys(set.pairs).filter(k=>set.pairs[k].length>=15),out=[];
   while(out.length<n&&ok.length){const k=ok.splice(Math.floor(Math.random()*ok.length),1)[0];out.push([k[0],k[1]])}
   return out;
 }
-const pairPool=(f,s)=>EIDX.filter(p=>p.first&&p.first[0]===f&&p.letters.has(s));
+const pairPool=(f,s)=>((curSet()||{}).idx||[]).filter(p=>p.first&&p.first[0]===f&&p.letters.has(s));
+// International edition, one letter: forwards score international goals, everyone else caps
+function playOne(p){
+  if(!isIntl()){play(p.name,p.key,p.goals);return}
+  const n=p.goals||0,w=STAT_WORD[p.type]||"points";
+  play(p.name,uidOf(p),n,plabel(p)+": "+n+" "+(n===1?w.replace(/s$/,""):w));
+}
 function playPair(p){
   const pts=10+(p.goals||0);
-  const reveal=p.type?p.name+": 10 + "+(p.goals||0)+" "+STAT_WORD[p.type]+" = "+pts+" points":p.name+": 10 points";
-  play(p.name,p.key,pts,reveal);
+  const reveal=p.type?plabel(p)+": 10 + "+(p.goals||0)+" "+STAT_WORD[p.type]+" = "+pts+" points":p.name+": 10 points";
+  play(p.name,uidOf(p),pts,reveal);
 }
 function submitPairs(){
   const q=$("pname").value.trim();hideChoices();
   if(!q){flash("Type a player's name first, or pass.","err");return}
-  if(!EIDX){flash("Still loading the player list. Try again in a second.","");loadEurope().then(render).catch(()=>{});return}
+  const SET=curSet();
+  if(!SET||!SET.idx){flash("Still loading the player list. Try again in a second.","");loadFor(S).then(render).catch(()=>{});return}
   const [f,s2]=pairOf(S,S.li),F=f.toUpperCase(),S2=s2.toUpperCase();
-  const all=candidates(q,EIDX);
+  const all=candidates(q,SET.idx);
   const fit=all.filter(p=>p.first&&p.first[0]===f&&p.letters.has(s2));
   if(all.length&&!fit.length){flash((all.length===1?all[0].name:q)+" doesn't match "+F+" "+S2+". First name must start with "+F+" and surname with "+S2+".","err");return}
   if(fit.length){
-    const free=fit.filter(p=>!S.used.includes(p.key));
+    const free=fit.filter(p=>!S.used.includes(uidOf(p)));
     if(!free.length){flash(fit[0].name+" has already been named this game.","err");return}
     if(free.length===1){playPair(free[0]);return}
     const list=[...free].sort((a,b)=>a.name.localeCompare(b.name)).slice(0,16);
-    showChoices("Which one do you mean?",list.map(p=>[p.name,()=>playPair(p)]).concat([["None of these",retry]]));
+    showChoices("Which one do you mean?",list.map(p=>[plabel(p),()=>playPair(p)]).concat([["None of these",retry]]));
     return;
   }
   const w=K(q).split(" ");
   if(w.length<2){flash("Type his first name and surname.","err");return}
   if(w[0][0]!==f||!w.slice(1).some(x=>x[0]===s2)){flash(q+" doesn't match "+F+" "+S2+".","err");return}
   const k=K(q),len=k.replace(/ /g,"").length,lim=len>=9?3:len>=5?2:1;let best=9,hits=[];
-  for(const p of pairPool(f,s2)){if(S.used.includes(p.key))continue;
+  for(const p of pairPool(f,s2)){if(S.used.includes(uidOf(p)))continue;
     const d=Math.min(lev(k,p.key),lev(w[w.length-1],p.lastK)+1);
     if(d<best){best=d;hits=[p]}else if(d===best)hits.push(p)}
   if(best<=lim&&hits.length){hits=hits.sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
     showChoices(hits.length===1?"Did you mean "+hits[0].name+"?":"Did you mean one of these?",
-      hits.map(p=>[hits.length===1?"Yes, "+p.name:p.name,()=>playPair(p),hits.length===1]).concat([["No, let me retype",retry]]));return}
-  flash("Can't find a player called "+q+" in England or Europe's top leagues. Check the spelling and try again, or pass.","err");
+      hits.map(p=>[hits.length===1?"Yes, "+plabel(p):plabel(p),()=>playPair(p),hits.length===1]).concat([["No, let me retype",retry]]));return}
+  flash("Can't find "+(isIntl()?"an international player":"a player")+" called "+q+(isIntl()?" in our list":" in England or Europe's top leagues")+". Check the spelling and try again, or pass.","err");
 }
 
 /* ---------- turn alerts ---------- */

@@ -74,6 +74,11 @@
         <span><b>Goalkeepers: clean sheets</b><small>Every letter, name a goalkeeper. You score his clean sheets. Most wins.</small></span></label>
       <label><input type="radio" name="game" id="gameEuro" value="pairs">
         <span><b>Two letters: Europe</b><small>Each round gives two letters, e.g. B C. Name any player from England or Europe whose first name and surname start with them (Ben Chilwell). 10 points, plus his career goals (forwards), assists (midfielders) or clean sheets (keepers and defenders).</small></span></label>
+      <div class="label edition">🌍 International edition</div>
+      <label><input type="radio" name="game" id="gameIntl1" value="intl1">
+        <span><b>International: one letter</b><small>A to Z with a position each letter, using international players from every country. Forwards score their international goals; midfielders, defenders and keepers score their caps.</small></span></label>
+      <label><input type="radio" name="game" id="gameIntl2" value="intl2">
+        <span><b>International: two letters</b><small>Two letters each round, e.g. L M. Name any international player with those initials (Lionel Messi). 10 points plus his international goals (forwards) or caps (everyone else).</small></span></label>
     </div>
     <details id="moreOpts">
       <summary class="label" style="cursor:pointer">More options</summary>
@@ -190,6 +195,7 @@
       <li><b>Fewest goals wins:</b> lowest total wins, but a player who never scored, or a pass, costs 15.</li>
       <li><b>Goalkeepers</b> scores clean sheets.</li>
       <li><b>Two letters: Europe:</b> match a first-name and surname letter. 10 points plus career goals, assists or clean sheets.</li>
+      <li><b>International edition:</b> players from every national team. Forwards score international goals; everyone else scores international caps. Play it with one letter or two.</li>
     </ul>
     <p class="note">Stats come from public football records up to the start of the 2026/27 season. Some older players' numbers are estimates and are marked as such. Not affiliated with any league or club.</p>
     <form method="dialog"><button class="primary big-btn" type="submit">Got it</button></form>

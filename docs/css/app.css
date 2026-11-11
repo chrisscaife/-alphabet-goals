@@ -146,3 +146,4 @@ dialog#howto::backdrop{background:rgba(0,0,0,.6)}
 .invite{gap:10px}
 .msg:empty{min-height:0}
 html,body{min-height:100%}body{min-height:100dvh}
+.mode .edition{margin-top:6px}

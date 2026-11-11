@@ -1,12 +1,12 @@
 // Alphabet Goals service worker: offline app shell + "your turn" notification taps.
-const CACHE = "ag-v1.0.0";
+const CACHE = "ag-v1.1.0";
 const SHELL = [
   "./", "index.html", "css/app.css", "js/config.js", "js/data.js", "js/net.js", "js/app.js",
   "vendor/mqtt.min.js", "vendor/firebase-app-compat.js", "vendor/firebase-auth-compat.js", "vendor/firebase-database-compat.js",
   "fonts/big-shoulders-display-latin-700-normal.woff2", "fonts/big-shoulders-display-latin-900-normal.woff2",
   "fonts/barlow-semi-condensed-latin-400-normal.woff2", "fonts/barlow-semi-condensed-latin-500-normal.woff2",
   "fonts/barlow-semi-condensed-latin-600-normal.woff2", "fonts/barlow-semi-condensed-latin-700-normal.woff2",
-  "icon-192.png", "icon-512.png", "manifest.json", "privacy.html", "support.html"
+  "icon-192.png", "icon-512.png", "manifest.json", "privacy.html", "support.html", "europe.txt", "intl.txt"
 ];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
