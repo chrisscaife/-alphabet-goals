@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Alphabet Goals</string>
+    <string name="title_activity_main">Alphabet Goals</string>
+    <string name="package_name">com.chrisscaife.alphabetgoals</string>
+    <string name="custom_url_scheme">com.chrisscaife.alphabetgoals</string>
+</resources>

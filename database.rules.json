@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$room": {
+        ".read": "auth != null && $room.matches(/^[a-z0-9]{6,16}$/)",
+        "state": {
+          ".write": "auth != null && $room.matches(/^[a-z0-9]{6,16}$/)",
+          ".validate": "newData.hasChildren(['json', 'rev', 'ts']) && newData.child('json').isString() && newData.child('json').val().length < 200000 && newData.child('rev').isNumber() && newData.child('ts').isNumber() && (!data.exists() || newData.child('rev').val() >= data.child('rev').val())",
+          "json": { ".validate": true },
+          "rev": { ".validate": true },
+          "ts": { ".validate": true },
+          "$other": { ".validate": false }
+        },
+        "seats": {
+          "$seat": {
+            ".write": "auth != null && $room.matches(/^[a-z0-9]{6,16}$/) && $seat.matches(/^[a-z0-9]{2,20}$/)",
+            ".validate": "newData.hasChildren(['name', 't']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 24 && newData.child('t').isNumber()",
+            "name": { ".validate": true },
+            "t": { ".validate": true },
+            "u": { ".validate": "newData.isNumber()" },
+            "guest": { ".validate": "newData.isBoolean()" },
+            "ntfy": { ".validate": "newData.isBoolean()" },
+            "$other": { ".validate": false }
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "appId": "com.chrisscaife.alphabetgoals",
+  "appName": "Alphabet Goals",
+  "webDir": "docs",
+  "backgroundColor": "#0d2a1c",
+  "ios": { "contentInset": "never", "backgroundColor": "#0d2a1c" },
+  "android": { "backgroundColor": "#0d2a1c" },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#0d2a1c", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#0d2a1c", "overlaysWebView": false }
+  }
+}
