@@ -410,7 +410,8 @@ function submitPairs(){
   const [f,s2]=pairOf(S,S.li),F=f.toUpperCase(),S2=s2.toUpperCase();
   const all=candidates(q,SET.idx);
   const fit=all.filter(p=>p.first&&p.first[0]===f&&p.letters.has(s2));
-  if(all.length&&!fit.length){flash((all.length===1?all[0].name:q)+" doesn't match "+F+" "+S2+". First name must start with "+F+" and surname with "+S2+".","err");return}
+  const tw=K(q).split(" "),typedFits=tw.length>=2&&tw[0][0]===f&&tw.slice(1).some(x=>x[0]===s2);
+  if(all.length&&!fit.length&&!typedFits){flash((all.length===1?all[0].name:q)+" doesn't match "+F+" "+S2+". First name must start with "+F+" and surname with "+S2+".","err");return}
   if(fit.length){
     const free=fit.filter(p=>!S.used.includes(uidOf(p)));
     if(!free.length){flash(fit[0].name+" has already been named this game.","err");return}
