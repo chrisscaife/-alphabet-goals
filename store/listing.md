@@ -42,7 +42,7 @@ BUILT FOR PLAYING WITH FRIENDS
 • Practise on your own any time, even offline.
 
 THOUSANDS OF PLAYERS
-Over 2,800 goalscorers from England's top division since 1992, 500 goalkeepers, nearly 47,000 players from across Europe's top leagues and 12,000 international players, plus legends from earlier eras.
+Over 2,800 goalscorers from England's top division since 1992, 500 goalkeepers, nearly 47,000 players from across Europe's top leagues and 40,000 international players, plus legends from earlier eras.
 
 Free. No adverts. No accounts.
 

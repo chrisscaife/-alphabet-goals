@@ -1,8 +1,5 @@
 name: Fetch Wikidata international data
 on:
-  push:
-    branches: [data-wikidata]
-    paths: [tools/fetch_wikidata_intl.py, .github/workflows/wikidata-intl.yml]
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,9 +12,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: python tools/fetch_wikidata_intl.py
+      - run: python tools/build_intl.py
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
-          git add data/wikidata_intl.tsv
-          git commit -m "Wikidata international caps snapshot" || echo nothing
+          git add data/wikidata_intl.tsv docs/intl.txt
+          git commit -m "Refresh International edition from Wikidata" || echo nothing
           git push
