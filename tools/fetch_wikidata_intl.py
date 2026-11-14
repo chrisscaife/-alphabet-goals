@@ -1,7 +1,7 @@
 """Fetch senior men's international caps and goals from Wikidata (CC0).
 
 Writes data/wikidata_intl.tsv with one row per player per national team:
-qid, name, team_qid, team_label, caps, goals, positions, birth_year
+qid, name, team_qid, team_label, caps, goals, positions, birth_year, transfermarkt_id
 """
 import csv, json, os, re, sys, time, urllib.parse, urllib.request
 
@@ -28,11 +28,12 @@ SELECT DISTINCT ?t ?tl WHERE {
 BAD = re.compile(r"under|\bU-?\d|\bu\d\d|women|olympic|youth|amateur|\bB\b|futsal|beach|legends|\bXI\b|reserve|unofficial|universit|military|students|junior|cerebral|blind|amputee|deaf|veterans|masters|para|homeless|\bA'|second|military|police|regional|league", re.I)
 
 PLAYERS = """
-SELECT ?p ?pl ?caps ?goals ?birth (GROUP_CONCAT(DISTINCT ?posl; separator="/") AS ?pos) WHERE {
+SELECT ?p ?pl ?caps ?goals ?birth (SAMPLE(?tm) AS ?tmid) (GROUP_CONCAT(DISTINCT ?posl; separator="/") AS ?pos) WHERE {
   ?p p:P54 ?st . ?st ps:P54 wd:%s .
   OPTIONAL { ?st pq:P1350 ?caps }
   OPTIONAL { ?st pq:P1351 ?goals }
   OPTIONAL { ?p wdt:P569 ?birth }
+  OPTIONAL { ?p wdt:P2446 ?tm }
   OPTIONAL { ?p wdt:P413 ?posi . ?posi rdfs:label ?posl FILTER(lang(?posl)="en") }
   OPTIONAL { ?p rdfs:label ?pl FILTER(lang(?pl)="en") }
 } GROUP BY ?p ?pl ?caps ?goals ?birth"""
@@ -48,14 +49,14 @@ def main():
     print(len(teams), "teams", file=sys.stderr)
     out = open("data/wikidata_intl.tsv", "w", newline="", encoding="utf-8")
     w = csv.writer(out, delimiter="\t")
-    w.writerow(["qid", "name", "team_qid", "team", "caps", "goals", "positions", "birth_year"])
+    w.writerow(["qid", "name", "team_qid", "team", "caps", "goals", "positions", "birth_year", "transfermarkt_id"])
     n = 0
     for i, (tq, tl) in enumerate(sorted(teams.items(), key=lambda x: x[1])):
         rows = q(PLAYERS % tq)
         for b in rows:
             g = lambda k: b[k]["value"] if k in b else ""
             by = g("birth")[:4]
-            w.writerow([g("p").rsplit("/", 1)[1], g("pl"), tq, tl, g("caps"), g("goals"), g("pos"), by])
+            w.writerow([g("p").rsplit("/", 1)[1], g("pl"), tq, tl, g("caps"), g("goals"), g("pos"), by, g("tmid")])
             n += 1
         print(i, tl, len(rows), file=sys.stderr)
         time.sleep(1)
