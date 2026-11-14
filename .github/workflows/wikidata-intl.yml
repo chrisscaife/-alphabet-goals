@@ -1,0 +1,21 @@
+name: Fetch Wikidata international data
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python tools/fetch_wikidata_intl.py
+      - run: python tools/build_intl.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add data/wikidata_intl.tsv docs/intl.txt
+          git commit -m "Refresh International edition from Wikidata" || echo nothing
+          git push
