@@ -31,7 +31,7 @@ SIX WAYS TO PLAY
 • Fewest goals wins: name the players who barely scored. But pick someone who never scored and it costs you 15.
 • Goalkeepers: every letter is a keeper, and you score his clean sheets.
 • Two letters: Europe: you're given two letters like Z Z. Name any player from England or Europe with those initials (Zinédine Zidane!). 10 points plus his career goals, assists or clean sheets.
-• International edition: players from every national team, with one letter or two. Forwards score their international goals; everyone else scores their caps.
+• International edition: players from every national team, with one letter, two letters, or a different country for each letter. Forwards score their international goals; everyone else scores their caps.
 
 BUILT FOR PLAYING WITH FRIENDS
 • Every game gets its own private link. Friends can join from the app or any phone browser.
