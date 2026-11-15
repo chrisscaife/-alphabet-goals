@@ -104,6 +104,10 @@ const labelAt=(g,li)=>isPairs(g)?pairOf(g,li).join("").toUpperCase():LETTERS[li]
 const unit=n=>isPairs()||isIntl()?(n===1?"point":"points"):isKeep()?(n===1?"clean sheet":"clean sheets"):(n===1?"goal":"goals");
 const ptsFor=(g,goals)=>isLow(g)&&goals===0?LOW_PENALTY:goals;
 const ptsOf=t=>t.pts!=null?t.pts:t.goals;
+// Passing or skipping costs 15: minus 15 normally, plus 15 when fewest wins
+const passPts=g=>isLow(g)?LOW_PENALTY:-LOW_PENALTY;
+const WRONG_CTRY=50;
+const signed=n=>n<0?"−"+(-n):"+"+n;
 const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
 const curPos=()=>isPairs()||isCtry()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
 // International: countries. Each letter names a country; the player must have played for it.
@@ -241,7 +245,8 @@ function renderGame(){
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
     $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
   $("skipL").hidden=PR&&S.mode==="relay";
-  $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
+  $("pass").textContent="Pass ("+signed(passPts(S))+")";
+  $("skipL").textContent="Skip letter ("+signed(passPts(S))+")";
   const P=!over&&(curCtry()||curPos());$("posPill").hidden=!P;if(P)$("posPill").textContent=curCtry()||POSN[P];
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
@@ -257,7 +262,7 @@ function renderTable(){
 function renderLog(){
   const nm=i=>S.players[i]?S.players[i].name:"?";
   const items=[...S.turns].reverse();
-  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.ctry?'<span class="pt">'+esc(t.ctry)+'</span>':t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.skip?"–":(ptsOf(t)!==t.goals?(t.pass?"":"0 → ")+"+"+ptsOf(t):(t.pass?"–":"+"+t.goals))}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
+  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.ctry?'<span class="pt">'+esc(t.ctry)+'</span>':t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":t.wrong?esc(t.name)+" (wrong country)":esc(t.name)}</span><span class="gl">${t.wrong||t.pass?(t.pts?signed(t.pts):"–"):ptsOf(t)!==t.goals?"0 → "+signed(ptsOf(t)):"+"+t.goals}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
 }
 function renderResult(){
   const order=ranked();
@@ -359,8 +364,12 @@ function submit(){
   if(all.length&&!fit.length){flash(all[0].name+"'s surname doesn't start with "+L+".","err");return}
   const P=curPos(),want=P?POSN[P].toLowerCase():"",C=curCtry();
   if(C&&fit.length&&!fit.some(p=>ctryOf(p)===C)){
-    const cs=[...new Set(fit.map(ctryOf))].join(" / ");
-    flash(fit.length===1?fit[0].name+" played for "+cs+", not "+C+".":"None of the players called "+q+" played for "+C+".","err");return}
+    const cs=[...new Set(fit.map(ctryOf))].join(" / "),who=fit[0].name,li=S.li,pi=S.pi;
+    if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
+      g.turns.push({letter:LETTERS[li],ctry:g.countries[li],pi,name:who,goals:0,pts:-WRONG_CTRY,pass:false,wrong:true,li});
+      g.players[pi].score-=WRONG_CTRY;advance(g)}))
+      flash(who+" played for "+cs+", not "+C+". −"+WRONG_CTRY+" points.","err");
+    return}
   const posFit=C?fit.filter(p=>ctryOf(p)===C):P?fit.filter(p=>!p.pos||p.pos.includes(P)):fit;
   if(fit.length&&!posFit.length){
     flash(fit.length===1?fit[0].name+" is listed as a "+posWords(fit[0].pos)+", not a "+want+".":"None of the players called "+q+" are listed as a "+want+".","err");return}
@@ -382,10 +391,10 @@ function submit(){
   flash("Can't find "+(isKeep()?"a goalkeeper":C?"a player from "+C:isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
 }
 $("submit").onclick=submit;
-$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=passPts(g);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   if(isPairs(g)&&g.mode==="relay")return "Use Pass in Two letters relay.";
-  const LB=labelAt(g,li);g.turns.push({letter:LB,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
+  const LB=labelAt(g,li),pts=passPts(g);g.turns.push({letter:LB,ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,skip:true,pass:true,goals:0,pts,li,prevPi:pi});g.players[pi].score+=pts;g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
 const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
 $("noRestart").onclick=()=>$("confirmRow").hidden=true;
