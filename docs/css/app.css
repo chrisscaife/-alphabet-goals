@@ -125,6 +125,7 @@ button.ghost{border-color:transparent;background:rgba(255,255,255,.06);padding:8
 .lede{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1.1;margin:0 0 4px;text-transform:uppercase;text-wrap:balance}
 .footlinks{margin:0;font-size:.85rem;color:var(--muted)}
 .footlinks a{color:var(--muted)}
+.copyright{text-align:center;font-size:.75rem;color:var(--muted);margin:8px 0 0}
 .invite{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:6px;background:rgba(242,194,48,.05)}
 .invite-row{display:flex;gap:8px;flex-wrap:wrap}
 .invite-row .wa{flex:1 1 140px;padding:12px 14px}
