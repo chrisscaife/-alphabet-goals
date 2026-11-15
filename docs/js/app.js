@@ -83,7 +83,8 @@ function relayDrops(game,n){
 function skipDead(g){
   if(isPairs(g))return;
   const dead=(g.game==="keepers"?NO_KEEPER:[]).concat(g.dropped||[]);
-  while(g.li<26&&dead.includes(LETTERS[g.li])){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
+  const noCtry=li=>isCtry(g)&&g.countries&&!g.countries[li];
+  while(g.li<26&&(dead.includes(LETTERS[g.li])||noCtry(g.li))){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
 }
 // ---- player lookup ----
 const K=x=>norm(x).replace(/['’`]/g,"").replace(/[-.]/g," ").replace(/\s+/g," ").trim();
@@ -94,6 +95,7 @@ const LOW_PENALTY=15;
 const isLow=g=>(g||S).game==="low";
 const isKeep=g=>(g||S).game==="keepers";
 const isIntl=g=>String((g||S).game||"").startsWith("intl");
+const isCtry=g=>(g||S).game==="intlc";
 const isPairs=g=>{const x=(g||S).game;return x==="pairs"||x==="intl2"};
 const PAIR_ROUNDS=10;
 const roundsOf=g=>isPairs(g)?(g.pairs||[]).length:26;
@@ -103,7 +105,28 @@ const unit=n=>isPairs()||isIntl()?(n===1?"point":"points"):isKeep()?(n===1?"clea
 const ptsFor=(g,goals)=>isLow(g)&&goals===0?LOW_PENALTY:goals;
 const ptsOf=t=>t.pts!=null?t.pts:t.goals;
 const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
-const curPos=()=>isPairs()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
+const curPos=()=>isPairs()||isCtry()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
+// International: countries. Each letter names a country; the player must have played for it.
+const CTRY_NAME={"Korea, South":"South Korea","Korea, North":"North Korea","Hongkong":"Hong Kong","Cote d'Ivoire":"Ivory Coast",
+  "St. Vincent & Grenadinen":"St Vincent & the Grenadines","St. Kitts & Nevis":"St Kitts & Nevis","Bosnia-Herzegovina":"Bosnia and Herzegovina"};
+const ctryOf=p=>p&&p.country?(CTRY_NAME[p.country]||p.country):"";
+const curCtry=()=>isCtry()&&S.countries?S.countries[S.li]:null;
+// avoid: countries from recent games, so each game gets a fresh set where it can
+function drawCountries(set,avoid){
+  avoid=new Set(avoid||[]);
+  const by={},size={};
+  for(const p of set.idx){const c=ctryOf(p);if(!c||c.includes("("))continue;size[c]=(size[c]||0)+1;
+    for(const l of p.letters)(by[l]=by[l]||{})[c]=(by[l][c]||0)+1}
+  // favour the bigger footballing nations so letters stay gettable
+  const top=new Set(Object.keys(size).sort((a,b)=>size[b]-size[a]).slice(0,60)),used=new Set();
+  return LETTERS.map(L=>{const m=by[L.toLowerCase()]||{};
+    for(const [need,onlyTop] of [[6,true],[3,true],[3,false],[1,false]]){
+      let c=Object.keys(m).filter(c=>m[c]>=need&&(!onlyTop||top.has(c)));
+      const notUsed=c.filter(x=>!used.has(x));if(notUsed.length)c=notUsed;
+      const fresh=c.filter(x=>!avoid.has(x));if(fresh.length)c=fresh;
+      if(c.length){const pick=c[Math.floor(Math.random()*c.length)];used.add(pick);return pick}}
+    return null});
+}
 const randPositions=()=>LETTERS.map(()=>"DMF"[Math.floor(Math.random()*3)]);
 const mkIdx=(list,defPos)=>list.map(([name,goals,pos,alias])=>{
   const t=norm(name).replace(/['’.]/g,"").split(/\s+/).filter(Boolean);
@@ -216,13 +239,13 @@ function renderGame(){
   const inGame=S.players.some(p=>p.dev===ME);
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Start a new game to play again."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
-    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
   $("skipL").hidden=PR&&S.mode==="relay";
   $("pass").textContent=isLow()?"Pass (+"+LOW_PENALTY+")":"Pass (0)";
-  const P=!over&&curPos();$("posPill").hidden=!P;if(P)$("posPill").textContent=POSN[P];
+  const P=!over&&(curCtry()||curPos());$("posPill").hidden=!P;if(P)$("posPill").textContent=curCtry()||POSN[P];
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
-  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…");
+  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":(curCtry()?" to pick a player from "+curCtry()+" beginning with "+L+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…"));
   renderTable();renderLog();
 }
 function renderTable(){
@@ -234,7 +257,7 @@ function renderTable(){
 function renderLog(){
   const nm=i=>S.players[i]?S.players[i].name:"?";
   const items=[...S.turns].reverse();
-  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.skip?"–":(ptsOf(t)!==t.goals?(t.pass?"":"0 → ")+"+"+ptsOf(t):(t.pass?"–":"+"+t.goals))}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
+  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.ctry?'<span class="pt">'+esc(t.ctry)+'</span>':t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":esc(t.name)}</span><span class="gl">${t.skip?"–":(ptsOf(t)!==t.goals?(t.pass?"":"0 → ")+"+"+ptsOf(t):(t.pass?"–":"+"+t.goals))}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
 }
 function renderResult(){
   const order=ranked();
@@ -262,7 +285,7 @@ $("addGuest").onclick=()=>{
   if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
   seats[id]=v;$("guestName").value="";render();
 };
-const GAME_RADIOS=["gameHigh","gameLow","gameKeep","gameEuro","gameIntl1","gameIntl2"];
+const GAME_RADIOS=["gameHigh","gameLow","gameKeep","gameEuro","gameIntl1","gameIntlC","gameIntl2"];
 const pickedGame=()=>{const r=GAME_RADIOS.find(id=>$(id).checked);return r?$(r).value:"high"};
 GAME_RADIOS.forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
 ["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
@@ -272,12 +295,17 @@ $("clearYes").onclick=()=>{Object.keys(seats).forEach(id=>{send("seat/"+id,null)
 $("start").onclick=async()=>{
   const list=seatList();
   if(!list.length){flash("Someone needs to join first.","err");return}
-  let pairs=null;
+  let pairs=null,countries=null;
   const gm=pickedGame();
   if(gm==="pairs"||gm.startsWith("intl")){
     flash(gm.startsWith("intl")?"Loading international players…":"Loading European players…","");
     let set;try{set=await loadFor({game:gm})}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
-    if(gm!=="intl1"){
+    if(gm==="intlc"){
+      let recent=[];try{recent=JSON.parse(ls.get("ag-recent-countries")||"[]")}catch(e){}
+      countries=drawCountries(set,recent.concat(S.countries||[]));
+      try{ls.set("ag-recent-countries",JSON.stringify(countries.filter(Boolean).concat(recent).slice(0,78)))}catch(e){}
+    }
+    else if(gm!=="intl1"){
       // every player gets their own two letters each turn, PAIR_ROUNDS turns each
       const n=list.length,relay=$("modeRelay").checked;
       pairs=drawPairs(relay&&n>1?Math.ceil(PAIR_ROUNDS/n)*n:PAIR_ROUNDS,set);if(relay&&n>1&&pairs.length%n)pairs=pairs.slice(0,pairs.length-pairs.length%n);
@@ -285,7 +313,7 @@ $("start").onclick=async()=>{
     flash("");
   }
   commit(g=>{
-    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.countries=countries;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
     g.dropped=g.mode==="relay"?relayDrops(g.game,list.length):[];skipDead(g);
   });
@@ -309,7 +337,7 @@ function play(name,key,goals,reveal){
   if(S.used.includes(key)){flash(name+" has already been named this game.","err");return}
   if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;if(g.used.includes(key))return name+" has already been named this game.";
     const pts=ptsFor(g,goals);
-    g.turns.push({letter:L,pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
+    g.turns.push({letter:L,pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
     g.players[pi].score+=pts;g.players[pi].count++;advance(g)})){
     const m=$("msg");m.className="msg ok";m.innerHTML="";const r=document.createElement("span");r.className="reveal";
     if(window.agHaptic)window.agHaptic();
@@ -329,8 +357,11 @@ function submit(){
   }
   const fit=all.filter(p=>p.letters.has(l));
   if(all.length&&!fit.length){flash(all[0].name+"'s surname doesn't start with "+L+".","err");return}
-  const P=curPos(),want=P?POSN[P].toLowerCase():"";
-  const posFit=P?fit.filter(p=>!p.pos||p.pos.includes(P)):fit;
+  const P=curPos(),want=P?POSN[P].toLowerCase():"",C=curCtry();
+  if(C&&fit.length&&!fit.some(p=>ctryOf(p)===C)){
+    const cs=[...new Set(fit.map(ctryOf))].join(" / ");
+    flash(fit.length===1?fit[0].name+" played for "+cs+", not "+C+".":"None of the players called "+q+" played for "+C+".","err");return}
+  const posFit=C?fit.filter(p=>ctryOf(p)===C):P?fit.filter(p=>!p.pos||p.pos.includes(P)):fit;
   if(fit.length&&!posFit.length){
     flash(fit.length===1?fit[0].name+" is listed as a "+posWords(fit[0].pos)+", not a "+want+".":"None of the players called "+q+" are listed as a "+want+".","err");return}
   if(posFit.length){
@@ -342,16 +373,16 @@ function submit(){
     return;
   }
   if(!genericLetterOK(q,L)){flash(q+"'s surname doesn't start with "+L+".","err");return}
-  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(uidOf(p))&&(!P||!p.pos||p.pos.includes(P))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
+  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(uidOf(p))&&(!P||!p.pos||p.pos.includes(P))&&(!C||ctryOf(p)===C)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
   if(fz.length){
     showChoices(fz.length===1?"Did you mean "+fz[0].name+"?":"Did you mean one of these?",
       fz.map(p=>[fz.length===1?"Yes, "+plabel(p):plabel(p),()=>playOne(p),fz.length===1]).concat([["No, let me retype",retry]]));
     return;
   }
-  flash("Can't find "+(isKeep()?"a goalkeeper":isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
+  flash("Can't find "+(isKeep()?"a goalkeeper":C?"a player from "+C:isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
 }
 $("submit").onclick=submit;
-$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&g.positions?g.positions[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=ptsFor(g,0);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   if(isPairs(g)&&g.mode==="relay")return "Use Pass in Two letters relay.";
   const LB=labelAt(g,li);g.turns.push({letter:LB,pi,skip:true,pass:true,goals:0,li,prevPi:pi});g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
