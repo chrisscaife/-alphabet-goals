@@ -1,0 +1,11 @@
+name: Debug Wikidata
+on:
+  push:
+    branches: [data-wikidata-clubs]
+    paths: [tools/debug_wd.py]
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/debug_wd.py
