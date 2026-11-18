@@ -56,15 +56,18 @@ def main():
     os.makedirs("data", exist_ok=True)
     w = csv.writer(open("data/wikidata_clubs.tsv", "w", newline="", encoding="utf-8"), delimiter="\t")
     w.writerow(["qid", "name", "enwiki", "club", "start", "end", "birth_year"])
+    missing = []
     for club, art in sorted(CLUBS.items()):
-        rows = q(PLAYERS % urllib.parse.quote(art.replace(" ", "_"), safe="_.()&'"))
+        rows = q(PLAYERS % urllib.parse.quote(art.replace(" ", "_"), safe="_.()"))
         if not rows:
-            raise RuntimeError("no players for " + club)
+            print("NO PLAYERS FOR", club, file=sys.stderr); missing.append(club); continue
         for b in rows:
             g = lambda k: b[k]["value"] if k in b else ""
             w.writerow([g("p").rsplit("/", 1)[1], g("pl"), g("wt"), club, g("start")[:4], g("end")[:4], g("birth")[:4]])
         print(club, len(rows), file=sys.stderr)
         time.sleep(2)
+    if missing:
+        print("missing:", ", ".join(missing), file=sys.stderr)
 
 if __name__ == "__main__":
     main()
