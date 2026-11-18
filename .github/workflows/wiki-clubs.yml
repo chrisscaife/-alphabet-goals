@@ -1,0 +1,23 @@
+name: Fetch Wikipedia club data
+on:
+  workflow_dispatch:
+  push:
+    branches: [data-wikidata-clubs]
+    paths: [tools/fetch_wiki_clubs.py, .github/workflows/wiki-clubs.yml]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python tools/fetch_wiki_clubs.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add data/wiki_clubs.tsv
+          git commit -m "Fetch Premier League players' clubs from Wikipedia" || echo nothing
+          git pull --rebase && git push

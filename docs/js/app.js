@@ -64,10 +64,17 @@ function flash(t,cls){const el=S.phase==="lobby"?$("lobbyMsg"):$("msg");el.textC
 
 /* ---------- rules ---------- */
 function advance(g){
-  if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){g.pi=0;g.li++}}
+  if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){freeIfAllPassed(g,g.li);g.pi=0;g.li++}}
   else{g.li++;g.pi=(g.pi+1)%g.players.length}
   skipDead(g);
   if(g.li>=roundsOf(g))g.phase="over";
+}
+// Clubs: if nobody can name a player for a letter, everyone's pass on it is free
+function freeIfAllPassed(g,li){
+  if(!isClubs(g)||g.players.length<2)return;
+  const ts=g.turns.filter(t=>t.li===li);
+  if(ts.length<g.players.length||!ts.every(t=>t.pass&&!t.skip&&!t.wrong))return;
+  for(const t of ts){if(t.pts){g.players[t.pi].score-=t.pts;t.pts=0}t.free=true}
 }
 // letters with no goalkeeper in our list are skipped in Goalkeepers mode
 const NO_KEEPER=["Q","U","X","Y"];
@@ -83,7 +90,7 @@ function relayDrops(game,n){
 function skipDead(g){
   if(isPairs(g))return;
   const dead=(g.game==="keepers"?NO_KEEPER:[]).concat(g.dropped||[]);
-  const noCtry=li=>isCtry(g)&&g.countries&&!g.countries[li];
+  const noCtry=li=>(isCtry(g)&&g.countries&&!g.countries[li])||(isClubs(g)&&g.clubs&&!g.clubs[li]);
   while(g.li<26&&(dead.includes(LETTERS[g.li])||noCtry(g.li))){if(!g.skipped.includes(LETTERS[g.li]))g.skipped.push(LETTERS[g.li]);g.li++}
 }
 // ---- player lookup ----
@@ -96,6 +103,7 @@ const isLow=g=>(g||S).game==="low";
 const isKeep=g=>(g||S).game==="keepers";
 const isIntl=g=>String((g||S).game||"").startsWith("intl");
 const isCtry=g=>(g||S).game==="intlc";
+const isClubs=g=>(g||S).game==="clubs";
 const isPairs=g=>{const x=(g||S).game;return x==="pairs"||x==="intl2"};
 const PAIR_ROUNDS=10;
 const roundsOf=g=>isPairs(g)?(g.pairs||[]).length:26;
@@ -109,7 +117,7 @@ const passPts=g=>isLow(g)?LOW_PENALTY:-LOW_PENALTY;
 const WRONG_CTRY=50;
 const signed=n=>n<0?"−"+(-n):"+"+n;
 const ranked=()=>S.players.map((p,i)=>({...p,i})).sort((a,b)=>isLow()?a.score-b.score:b.score-a.score);
-const curPos=()=>isPairs()||isCtry()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
+const curPos=()=>isPairs()||isCtry()||isClubs()?null:isKeep()?"G":(S.positions?S.positions[S.li]:null);
 // International: countries. Each letter names a country; the player must have played for it.
 const CTRY_NAME={"Korea, South":"South Korea","Korea, North":"North Korea","Hongkong":"Hong Kong","Cote d'Ivoire":"Ivory Coast",
   "St. Vincent & Grenadinen":"St Vincent & the Grenadines","St. Kitts & Nevis":"St Kitts & Nevis","Bosnia-Herzegovina":"Bosnia and Herzegovina"};
@@ -130,6 +138,36 @@ function drawCountries(set,avoid){
       const fresh=c.filter(x=>!avoid.has(x));if(fresh.length)c=fresh;
       if(c.length){const pick=c[Math.floor(Math.random()*c.length)];used.add(pick);return pick}}
     return null});
+}
+// Clubs (English edition): each letter names a club; the player must have played for it.
+// docs/clubs.txt: "Player Name|Club,Club" built by tools/build_clubs.py
+let CLUBS_OF=null,clubsLoading=null;
+function loadClubs(){
+  if(CLUBS_OF)return Promise.resolve(CLUBS_OF);
+  if(clubsLoading)return clubsLoading;
+  return clubsLoading=fetch("clubs.txt").then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
+    const m={};for(const line of txt.split("\n")){const [n,c]=line.split("|");if(n&&c)m[K(n)]=c.split(",")}
+    return CLUBS_OF=m}).catch(e=>{clubsLoading=null;throw e});
+}
+const clubsOf=p=>(CLUBS_OF&&p&&CLUBS_OF[p.key])||[];
+const curClub=()=>isClubs()&&S.clubs?S.clubs[S.li]:null;
+// favour clubs with plenty of players for the letter; no club twice in a game; avoid recent games' clubs
+function drawClubs(avoid){
+  avoid=new Set(avoid||[]);
+  const by={},size={};
+  for(const p of IDX)for(const c of clubsOf(p)){size[c]=(size[c]||0)+1;for(const l of p.letters)(by[l]=by[l]||{})[c]=(by[l][c]||0)+1}
+  const top=new Set(Object.keys(size).sort((a,b)=>size[b]-size[a]).slice(0,30)),used=new Set();
+  // hardest letters first, so they get the pick of the clubs
+  const order=LETTERS.map((L,i)=>[i,Object.keys(by[L.toLowerCase()]||{}).length]).sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
+  const out=Array(26).fill(null);
+  for(const i of order){const m=by[LETTERS[i].toLowerCase()]||{};
+    for(const reuse of [false,true]){let done=false;
+      for(const [need,onlyTop] of [[8,true],[4,true],[3,false],[1,false]]){
+        let c=Object.keys(m).filter(c=>m[c]>=need&&(!onlyTop||top.has(c))&&(reuse||!used.has(c)));
+        const fresh=c.filter(x=>!avoid.has(x));if(fresh.length)c=fresh;
+        if(c.length){const pick=c[Math.floor(Math.random()*c.length)];used.add(pick);out[i]=pick;done=true;break}}
+      if(done)break}}
+  return out;
 }
 const randPositions=()=>LETTERS.map(()=>"DMF"[Math.floor(Math.random()*3)]);
 const mkIdx=(list,defPos)=>list.map(([name,goals,pos,alias])=>{
@@ -229,6 +267,7 @@ const myTurn=()=>canPlay(S,ME);
 function renderGame(){
   const PR=isPairs(),pr=pairOf(S,S.li).map(x=>x.toUpperCase());
   if((PR||isIntl())&&!(curSet()||{}).idx)loadFor(S).then(render).catch(()=>{});
+  if(isClubs()&&!CLUBS_OF)loadClubs().then(render).catch(()=>{});
   const over=S.phase==="over",L=over?"FT":PR?pr.join(" "):LETTERS[S.li];
   $("big").classList.toggle("pair",PR&&!over);
   const strip=$("strip");strip.innerHTML="";
@@ -243,14 +282,14 @@ function renderGame(){
   const inGame=S.players.some(p=>p.dev===ME);
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Start a new game to play again."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
-    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curClub()?"A player who played for "+curClub()+" whose surname begins with ":curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
   $("skipL").hidden=PR&&S.mode==="relay";
   $("pass").textContent="Pass ("+signed(passPts(S))+")";
   $("skipL").textContent="Skip letter ("+signed(passPts(S))+")";
-  const P=!over&&(curCtry()||curPos());$("posPill").hidden=!P;if(P)$("posPill").textContent=curCtry()||POSN[P];
+  const P=!over&&(curClub()||curCtry()||curPos());$("posPill").hidden=!P;if(P)$("posPill").textContent=curClub()||curCtry()||POSN[P];
   const canAct=!over&&myTurn();
   $("controls").hidden=!canAct;$("waiting").hidden=canAct||over;
-  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":(curCtry()?" to pick a player from "+curCtry()+" beginning with "+L+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…"));
+  if(!canAct&&!over&&cur)$("waiting").textContent=(inGame?"":"You're watching this match and can join the next one. ")+"Waiting for "+cur.name+(PR?" to name a player with initials "+pr[0]+" "+pr[1]+"…":(curClub()?" to pick a "+curClub()+" player beginning with "+L+"…":curCtry()?" to pick a player from "+curCtry()+" beginning with "+L+"…":" to pick a "+(curPos()?POSN[curPos()].toLowerCase():"player")+" beginning with "+L+"…"));
   renderTable();renderLog();
 }
 function renderTable(){
@@ -262,7 +301,7 @@ function renderTable(){
 function renderLog(){
   const nm=i=>S.players[i]?S.players[i].name:"?";
   const items=[...S.turns].reverse();
-  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.ctry?'<span class="pt">'+esc(t.ctry)+'</span>':t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?"passed":t.wrong?esc(t.name)+" (wrong country)":esc(t.name)}</span><span class="gl">${t.wrong||t.pass?(t.pts?signed(t.pts):"–"):ptsOf(t)!==t.goals?"0 → "+signed(ptsOf(t)):"+"+t.goals}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
+  $("log").innerHTML=items.length?items.map(t=>`<div><span class="L">${t.letter}${t.club?'<span class="pt">'+esc(t.club)+'</span>':t.ctry?'<span class="pt">'+esc(t.ctry)+'</span>':t.pos?'<span class="pt">'+t.pos.replace("F","ST").replace("D","DEF").replace("M","MID")+'</span>':""}</span><span class="n ${t.pass?"pass":""}">${esc(nm(t.pi))}: ${t.skip?"skipped "+t.letter+" for everyone":t.pass?(t.free?"passed (nobody had one, so it's free)":"passed"):t.wrong?esc(t.name)+(t.club?" (wrong club)":" (wrong country)"):esc(t.name)}</span><span class="gl">${t.wrong||t.pass?(t.pts?signed(t.pts):"–"):ptsOf(t)!==t.goals?"0 → "+signed(ptsOf(t)):"+"+t.goals}</span></div>`).join(""):'<div><span class="L">–</span><span class="n pass">No turns yet.</span><span></span></div>';
 }
 function renderResult(){
   const order=ranked();
@@ -290,7 +329,7 @@ $("addGuest").onclick=()=>{
   if(!send("seat/"+id,v)){flash("Still connecting. Try again in a moment.","err");return}
   seats[id]=v;$("guestName").value="";render();
 };
-const GAME_RADIOS=["gameHigh","gameLow","gameKeep","gameEuro","gameIntl1","gameIntlC","gameIntl2"];
+const GAME_RADIOS=["gameHigh","gameLow","gameKeep","gameClubs","gameEuro","gameIntl1","gameIntlC","gameIntl2"];
 const pickedGame=()=>{const r=GAME_RADIOS.find(id=>$(id).checked);return r?$(r).value:"high"};
 GAME_RADIOS.forEach(id=>$(id).onchange=()=>commit(g=>{g.game=pickedGame()}));
 ["modeAll","modeRelay"].forEach(id=>$(id).onchange=()=>commit(g=>{g.mode=$("modeRelay").checked?"relay":"all"}));
@@ -300,8 +339,16 @@ $("clearYes").onclick=()=>{Object.keys(seats).forEach(id=>{send("seat/"+id,null)
 $("start").onclick=async()=>{
   const list=seatList();
   if(!list.length){flash("Someone needs to join first.","err");return}
-  let pairs=null,countries=null;
+  let pairs=null,countries=null,clubs=null;
   const gm=pickedGame();
+  if(gm==="clubs"){
+    flash("Loading clubs…","");
+    try{await loadClubs()}catch(e){flash("Couldn't load the club list. Check your internet and try again.","err");return}
+    let recent=[];try{recent=JSON.parse(ls.get("ag-recent-clubs")||"[]")}catch(e){}
+    clubs=drawClubs(recent.concat(S.clubs||[]));
+    try{ls.set("ag-recent-clubs",JSON.stringify(clubs.filter(Boolean).concat(recent).slice(0,40)))}catch(e){}
+    flash("");
+  }
   if(gm==="pairs"||gm.startsWith("intl")){
     flash(gm.startsWith("intl")?"Loading international players…":"Loading European players…","");
     let set;try{set=await loadFor({game:gm})}catch(e){flash("Couldn't load the player list. Check your internet and try again.","err");return}
@@ -318,7 +365,7 @@ $("start").onclick=async()=>{
     flash("");
   }
   commit(g=>{
-    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.countries=countries;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
+    g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.countries=countries;g.clubs=clubs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
     g.dropped=g.mode==="relay"?relayDrops(g.game,list.length):[];skipDead(g);
   });
@@ -342,7 +389,7 @@ function play(name,key,goals,reveal){
   if(S.used.includes(key)){flash(name+" has already been named this game.","err");return}
   if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;if(g.used.includes(key))return name+" has already been named this game.";
     const pts=ptsFor(g,goals);
-    g.turns.push({letter:L,pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
+    g.turns.push({letter:L,pos:!isPairs(g)&&!isCtry(g)&&!isClubs(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,name,key,goals,pts,pass:false,li});g.used.push(key);
     g.players[pi].score+=pts;g.players[pi].count++;advance(g)})){
     const m=$("msg");m.className="msg ok";m.innerHTML="";const r=document.createElement("span");r.className="reveal";
     if(window.agHaptic)window.agHaptic();
@@ -362,7 +409,17 @@ function submit(){
   }
   const fit=all.filter(p=>p.letters.has(l));
   if(all.length&&!fit.length){flash(all[0].name+"'s surname doesn't start with "+L+".","err");return}
-  const P=curPos(),want=P?POSN[P].toLowerCase():"",C=curCtry();
+  const P=curPos(),want=P?POSN[P].toLowerCase():"",C=curCtry(),CL=curClub();
+  if(CL&&!CLUBS_OF){flash("Still loading the clubs. Try again in a second.","");loadClubs().then(render).catch(()=>{});return}
+  if(CL&&fit.length&&!fit.some(p=>clubsOf(p).includes(CL))){
+    const known=fit.filter(p=>clubsOf(p).length);
+    if(!known.length){flash("We don't have club records for "+fit[0].name+". Try someone else, or pass.","err");return}
+    const who=known[0].name,cs=clubsOf(known[0]),li=S.li,pi=S.pi;
+    if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
+      g.turns.push({letter:LETTERS[li],club:g.clubs[li],pi,name:who,goals:0,pts:-WRONG_CTRY,pass:false,wrong:true,li});
+      g.players[pi].score-=WRONG_CTRY;advance(g)}))
+      flash(who+" never played for "+CL+(cs.length<=4?" (his clubs: "+cs.join(", ")+")":"")+". −"+WRONG_CTRY+" points.","err");
+    return}
   if(C&&fit.length&&!fit.some(p=>ctryOf(p)===C)){
     const cs=[...new Set(fit.map(ctryOf))].join(" / "),who=fit[0].name,li=S.li,pi=S.pi;
     if(commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
@@ -370,7 +427,7 @@ function submit(){
       g.players[pi].score-=WRONG_CTRY;advance(g)}))
       flash(who+" played for "+cs+", not "+C+". −"+WRONG_CTRY+" points.","err");
     return}
-  const posFit=C?fit.filter(p=>ctryOf(p)===C):P?fit.filter(p=>!p.pos||p.pos.includes(P)):fit;
+  const posFit=CL?fit.filter(p=>clubsOf(p).includes(CL)):C?fit.filter(p=>ctryOf(p)===C):P?fit.filter(p=>!p.pos||p.pos.includes(P)):fit;
   if(fit.length&&!posFit.length){
     flash(fit.length===1?fit[0].name+" is listed as a "+posWords(fit[0].pos)+", not a "+want+".":"None of the players called "+q+" are listed as a "+want+".","err");return}
   if(posFit.length){
@@ -382,19 +439,19 @@ function submit(){
     return;
   }
   if(!genericLetterOK(q,L)){flash(q+"'s surname doesn't start with "+L+".","err");return}
-  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(uidOf(p))&&(!P||!p.pos||p.pos.includes(P))&&(!C||ctryOf(p)===C)).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
+  const fz=(fuzzy(q,L)||[]).filter(p=>!S.used.includes(uidOf(p))&&(!P||!p.pos||p.pos.includes(P))&&(!C||ctryOf(p)===C)&&(!CL||clubsOf(p).includes(CL))).sort((a,b)=>a.name.localeCompare(b.name)).slice(0,8);
   if(fz.length){
     showChoices(fz.length===1?"Did you mean "+fz[0].name+"?":"Did you mean one of these?",
       fz.map(p=>[fz.length===1?"Yes, "+plabel(p):plabel(p),()=>playOne(p),fz.length===1]).concat([["No, let me retype",retry]]));
     return;
   }
-  flash("Can't find "+(isKeep()?"a goalkeeper":C?"a player from "+C:isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
+  flash("Can't find "+(isKeep()?"a goalkeeper":CL?"a "+CL+" player":C?"a player from "+C:isIntl()?"an international player":"a player")+" called "+q+" in our list. Check the spelling and try again, or pass.","err");
 }
 $("submit").onclick=submit;
-$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=passPts(g);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
+$("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=passPts(g);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&!isClubs(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   if(isPairs(g)&&g.mode==="relay")return "Use Pass in Two letters relay.";
-  const LB=labelAt(g,li),pts=passPts(g);g.turns.push({letter:LB,ctry:isCtry(g)&&g.countries?g.countries[li]:"",pi,skip:true,pass:true,goals:0,pts,li,prevPi:pi});g.players[pi].score+=pts;g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
+  const LB=labelAt(g,li),pts=passPts(g);g.turns.push({letter:LB,ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,skip:true,pass:true,goals:0,pts,li,prevPi:pi});g.players[pi].score+=pts;g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
 const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
 $("noRestart").onclick=()=>$("confirmRow").hidden=true;
@@ -489,6 +546,8 @@ function chime(){try{if(!audioCtx)return;const t=audioCtx.currentTime;
     o.connect(g).connect(audioCtx.destination);o.start(t+d);o.stop(t+d+.4)})}catch(e){}}
 function turnText(g){if(isPairs(g)){const pr=pairOf(g,g.li).map(x=>x.toUpperCase());return "Your turn: name a player with initials "+pr[0]+" "+pr[1];}
   const L=LETTERS[g.li],P=isKeep(g)?"G":(g.positions?g.positions[g.li]:null);
+  if(isClubs(g)&&g.clubs)return "Your turn: a "+g.clubs[g.li]+" player beginning with "+L;
+  if(isCtry(g)&&g.countries)return "Your turn: a player from "+g.countries[g.li]+" beginning with "+L;
   return "Your turn: "+(P?"a "+POSN[P].toLowerCase():"a player")+" beginning with "+L;}
 function flashTitle(){if(flashTimer)return;const base=document.title;let on=false;
   flashTimer=setInterval(()=>{document.title=(on=!on)?"🔔 Your turn!":base},1000);
