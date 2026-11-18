@@ -1,5 +1,7 @@
-"""Match Wikidata club spells (data/wikidata_clubs.tsv) to the Premier League
-player list in docs/js/data.js and write docs/clubs.txt:
+"""Write docs/clubs.txt, the clubs of every player in the Premier League list
+(docs/js/data.js). Clubs come from his Wikipedia infobox (data/wiki_clubs.tsv,
+tools/fetch_wiki_clubs.py); for anyone not found there, from Wikidata club
+spells (data/wikidata_clubs.tsv):
 
     Player Name|Club,Club,...
 
@@ -36,6 +38,25 @@ NICK = {"andy": "andrew", "andrew": "andy", "tony": "anthony", "anthony": "tony"
         "ronnie": "ronald", "lenny": "leonard", "len": "leonard", "vinnie": "vincent", "nathan": "nat", "manny": "emmanuel",
         "emmanuel": "manny", "nico": "nicolas", "nicolas": "nico", "seb": "sebastian", "sebastian": "seb"}
 
+# Players neither source could place (their names in data.js are full legal
+# names). Checked by hand.
+MANUAL = {
+    "João Junqueira de Jesus": "Arsenal,Manchester City",            # Gabriel Jesus
+    "Luis Díaz Marulanda": "Liverpool",
+    "Rodrigo Moreno": "Leeds United",
+    "Igor Nascimento Rodrigues": "Brentford",                         # Igor Thiago
+    "Carlos Casimiro": "Manchester United",                           # Casemiro
+    "Ezri Konsa Ngoyo": "Aston Villa,Brentford,Charlton Athletic",
+    "Juan Hernández Suárez": "Watford",                               # Cucho Hernández
+    "Tanaka Ao": "Leeds United",
+    "Endo Wataru": "Liverpool",
+    "Junior Firpo": "Leeds United",
+    "Omar Alderete": "Sunderland",
+    "Thorvaldu Örlygsson": "Nottingham Forest",
+    "Özalan Alpay": "Aston Villa",
+    "Cristiano dos Santos Aveiro": "Manchester United",
+}
+
 def load_pl():
     src = open("docs/js/data.js", encoding="utf-8").read()
     m = re.search(r"const PL=(\[.*?\]);\s*\n", src, re.S)
@@ -63,8 +84,13 @@ def main():
             t = k.split()
             by_last[t[-1]].add(q)
             first_of.setdefault(q, set()).add(t[0])
+    wiki = {r["name"]: r["clubs"] for r in csv.DictReader(open("data/wiki_clubs.tsv", encoding="utf-8"), delimiter="\t") if r["clubs"]}
     out, miss, amb = [], [], 0
     for row in pl:
+        if row[0] in MANUAL:
+            out.append(row[0] + "|" + MANUAL[row[0]]); continue
+        if row[0] in wiki:  # Wikipedia infobox first: it is the most complete
+            out.append(row[0] + "|" + wiki[row[0]]); continue
         name, alias = row[0], (row[3] if len(row) > 3 else "")
         k = norm(name)
         qs = set(names.get(k, ()))
