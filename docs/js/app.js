@@ -115,11 +115,14 @@ const CTRY_NAME={"Korea, South":"South Korea","Korea, North":"North Korea","Hong
   "St. Vincent & Grenadinen":"St Vincent & the Grenadines","St. Kitts & Nevis":"St Kitts & Nevis","Bosnia-Herzegovina":"Bosnia and Herzegovina"};
 const ctryOf=p=>p&&p.country?(CTRY_NAME[p.country]||p.country):"";
 const curCtry=()=>isCtry()&&S.countries?S.countries[S.li]:null;
+// Countries that no longer exist aren't drawn: a modern player named for "Czechoslovakia"
+// or "Yugoslavia" would be marked wrong country, which reads as a bug.
+const OLD_CTRY=new Set(["Czechoslovakia","Yugoslavia","Soviet Union","East Germany","Serbia and Montenegro","CIS","Netherlands Antilles","Dutch East Indies"]);
 // avoid: countries from recent games, so each game gets a fresh set where it can
 function drawCountries(set,avoid){
   avoid=new Set(avoid||[]);
   const by={},size={};
-  for(const p of set.idx){const c=ctryOf(p);if(!c||c.includes("("))continue;size[c]=(size[c]||0)+1;
+  for(const p of set.idx){const c=ctryOf(p);if(!c||c.includes("(")||OLD_CTRY.has(c))continue;size[c]=(size[c]||0)+1;
     for(const l of p.letters)(by[l]=by[l]||{})[c]=(by[l][c]||0)+1}
   // favour the bigger footballing nations so letters stay gettable
   const top=new Set(Object.keys(size).sort((a,b)=>size[b]-size[a]).slice(0,60)),used=new Set();
