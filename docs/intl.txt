@@ -6783,7 +6783,6 @@ Chi Wing Leung|D|19caps|Hongkong
 Chi-gon Kim|D|9caps|Korea, South
 Chibuike Okeke|M|4caps|Nigeria
 Chicão|M|9caps|Brazil
-Chicharito|F|52ig|Mexico
 Chico Banza|F|0ig|Angola
 Chico Borja|M|11caps|United States
 Chico Faria|F|1ig|Portugal
@@ -17961,6 +17960,7 @@ Javier García|G|1caps|Argentina
 Javier González|M|16caps|Peru
 Javier Güemez|M|15caps|Mexico
 Javier Guzmán|D|38caps|Mexico
+Javier Hernández|F|52ig|Mexico|Chicharito
 Javier Hernández Gutiérrez|M|28caps|Mexico
 Javier Irureta|F|0ig|Spain
 Javier Jiménez|M|30caps|Costa Rica
