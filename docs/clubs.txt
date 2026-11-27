@@ -123,7 +123,7 @@ Gareth Bale|Southampton,Tottenham
 Gustavo Poyet|Chelsea,Swindon Town,Tottenham
 Kanu|Arsenal,Portsmouth,West Brom
 Bryan Mbeumo|Brentford,Manchester United
-Chicharito|Manchester United,West Ham
+Javier Hernández|Manchester United,West Ham
 Diego Costa|Chelsea,Wolves
 Gareth Barry|Aston Villa,Everton,Manchester City,West Brom
 Joshua King|Blackburn Rovers,Bournemouth,Everton,Hull City,Manchester United,Watford
@@ -3817,7 +3817,6 @@ Jason Shackell|Barnsley,Burnley,Derby County,Norwich City,Wolves
 Jason Steele|Blackburn Rovers,Brighton,Middlesbrough,Sunderland
 Javi Moreno|Bolton Wanderers
 Javier De Pedro|Blackburn Rovers
-Javier Hernández Balcázar|Manchester United,West Ham
 Jay Dasilva|Charlton Athletic,Chelsea,Coventry City
 Jay Emmanuel-Thomas|Arsenal,Blackpool,Cardiff City,Ipswich Town,QPR
 Jay Fulton|Oldham Athletic,Swansea City,Wigan Athletic

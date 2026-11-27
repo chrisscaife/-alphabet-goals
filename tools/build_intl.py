@@ -117,7 +117,7 @@ def main():
     lines = [l.rstrip("\n").split("|") for l in open(INTL, encoding="utf-8") if l.strip()]
     by_key = {}
     near = collections.defaultdict(list)  # (country, stat) -> names
-    for i, (name, pos, stat, ctry) in enumerate(lines):
+    for i, (name, pos, stat, ctry, *_) in enumerate(lines):
         c = SAME.get(ctry, ctry)
         by_key.setdefault((norm(name), c), i)
         by_key.setdefault((words(name), c), i)
@@ -176,10 +176,10 @@ def main():
             if p["pos"] and not (p["pos"] == "F" and p["goals"] is None):
                 new = f"{p['goals']}ig" if p["pos"] == "F" else f"{p['caps']}caps"
                 if int(re.match(r"\d+", new).group()) > int(re.match(r"\d+", lines[i][2]).group()):
-                    lines[i] = [western_order(p["name"], p["country"]), p["pos"], new, p["country"]]; updated += 1
+                    lines[i] = [western_order(p["name"], p["country"]), p["pos"], new, p["country"]] + lines[i][4:]; updated += 1
             continue
         if i is not None:
-            name, pos, stat, ctry = lines[i]
+            name, pos, stat, ctry, *_ = lines[i]
             m = re.match(r"^(\d+)(caps|ig)$", stat)
             if not m:
                 continue
@@ -204,7 +204,7 @@ def main():
             j = by_key[key]
             if int(re.match(r"\d+", lines[j][2]).group()) >= int(re.match(r"\d+", stat).group()):
                 continue
-            lines[j] = [western_order(p["name"], p["country"]), p["pos"], stat, p["country"]]
+            lines[j] = [western_order(p["name"], p["country"]), p["pos"], stat, p["country"]] + lines[j][4:]
             continue
         p["name"] = western_order(p["name"], p["country"])
         lines.append([p["name"], p["pos"], stat, p["country"]])

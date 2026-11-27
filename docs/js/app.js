@@ -476,8 +476,8 @@ function loadFor(g){
   const st=SETS[file]={};
   st.loading=fetch(file).then(r=>{if(!r.ok)throw new Error("load");return r.text()}).then(txt=>{
     const list=[],extra=[];
-    for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b,country]=line.split("|");
-      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs|ea|ig|caps)$/):null;list.push([name,m?+m[1]:0,pos||""]);extra.push([m?m[2]:"",country||""])}
+    for(const line of txt.split("\n")){if(!line)continue;const [name,pos,b,country,alias]=line.split("|");
+      const m=b?b.match(/^(\d+)(g|a|cs|pg|pa|pcs|dcs|ecs|xg|xcs|ea|ig|caps)$/):null;list.push([name,m?+m[1]:0,pos||"",alias||""]);extra.push([m?m[2]:"",country||""])}
     st.idx=mkIdx(list);
     st.idx.forEach((p,i)=>{p.type=extra[i][0];if(extra[i][1]){p.country=extra[i][1];p.uid=p.key+"|"+K(p.country)}});
     st.pairs={};for(const p of st.idx){if(!p.first)continue;const k=p.first[0]+p.lastK[0];if(/^[a-z]{2}$/.test(k))(st.pairs[k]=st.pairs[k]||[]).push(p)}

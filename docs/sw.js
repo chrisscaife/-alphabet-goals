@@ -1,5 +1,5 @@
 // Alphabet Goals service worker: offline app shell + "your turn" notification taps.
-const CACHE = "ag-v1.1.4";
+const CACHE = "ag-v1.1.5";
 const SHELL = [
   "./", "index.html", "css/app.css", "js/config.js", "js/data.js", "js/net.js", "js/app.js",
   "vendor/mqtt.min.js", "vendor/firebase-app-compat.js", "vendor/firebase-auth-compat.js", "vendor/firebase-database-compat.js",
