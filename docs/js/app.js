@@ -63,10 +63,25 @@ function commit(mutate){
 function flash(t,cls){const el=S.phase==="lobby"?$("lobbyMsg"):$("msg");el.textContent=t||"";el.className="msg "+(cls||"")}
 
 /* ---------- rules ---------- */
+// Everyone-plays mode: each letter has its own random order. Who goes first is dealt
+// like cards (everyone starts once before anyone starts twice), the rest are shuffled.
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function makeOrders(n,rounds){
+  const ids=[...Array(n).keys()],out=[];let deck=[],last=-1;
+  for(let r=0;r<rounds;r++){
+    if(!deck.length){deck=shuffle(ids);if(n>1&&deck[0]===last)deck.push(deck.shift())}
+    const first=deck.shift();last=first;
+    out.push([first].concat(shuffle(ids.filter(i=>i!==first))));
+  }
+  return out;
+}
+const orderAt=(g,li)=>(g.orders&&g.orders[li])||[...g.players.keys()];
+const stepOf=g=>g.step!=null?g.step:g.pi; // games started before random order used pi as the position
 function advance(g){
-  if(g.mode==="all"){g.pi++;if(g.pi>=g.players.length){freeIfAllPassed(g,g.li);g.pi=0;g.li++}}
+  if(g.mode==="all"){g.step=stepOf(g)+1;if(g.step>=g.players.length){freeIfAllPassed(g,g.li);g.step=0;g.li++}}
   else{g.li++;g.pi=(g.pi+1)%g.players.length}
   skipDead(g);
+  if(g.mode==="all")g.pi=orderAt(g,g.li)[g.step];
   if(g.li>=roundsOf(g))g.phase="over";
 }
 // Clubs: if nobody can name a player for a letter, everyone's pass on it is free
@@ -285,7 +300,7 @@ function renderGame(){
   const inGame=S.players.some(p=>p.dev===ME);
   if(over){$("onball").textContent="Full time";$("onball").className="label";$("who").textContent="Match over";$("hint").textContent="Start a new game to play again."}
   else{const mine=myTurn();$("onball").textContent=mine?"Your turn":"On the ball";$("onball").className="label"+(mine?" yourturn":"");
-    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curClub()?"A player who played for "+curClub()+" whose surname begins with ":curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(S.pi+1)+" of "+S.players.length:"")}
+    $("who").textContent=cur?cur.name:"";$("hint").textContent=(PR?"First name "+pr[0]+", surname "+pr[1]+" · round "+(S.li+1)+" of "+roundsOf(S):(curClub()?"A player who played for "+curClub()+" whose surname begins with ":curCtry()?"A player from "+curCtry()+" whose surname begins with ":curPos()?"A "+POSN[curPos()].toLowerCase()+" whose surname begins with ":"Surname beginning with ")+L)+(S.mode==="all"&&S.players.length>1?" · turn "+(stepOf(S)+1)+" of "+S.players.length:"")}
   $("skipL").hidden=PR&&S.mode==="relay";
   $("pass").textContent="Pass ("+signed(passPts(S))+")";
   $("skipL").textContent="Skip letter ("+signed(passPts(S))+")";
@@ -371,6 +386,8 @@ $("start").onclick=async()=>{
     g.phase="playing";g.game=pickedGame();g.pairs=pairs;g.countries=countries;g.clubs=clubs;g.positions=randPositions();g.mode=$("modeRelay").checked?"relay":"all";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];
     g.players=list.map(p=>({name:p.name,dev:p.guest?null:p.id,guest:!!p.guest,score:0,count:0}));
     g.dropped=g.mode==="relay"?relayDrops(g.game,list.length):[];skipDead(g);
+    g.step=0;g.orders=g.mode==="all"?makeOrders(list.length,roundsOf(g)):null;
+    g.pi=g.mode==="all"?orderAt(g,g.li)[0]:Math.floor(Math.random()*list.length);
   });
 };
 
@@ -454,8 +471,8 @@ $("submit").onclick=submit;
 $("pass").onclick=()=>{const li=S.li,pi=S.pi;commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;const pts=passPts(g);g.turns.push({letter:labelAt(g,li),pos:!isPairs(g)&&!isCtry(g)&&!isClubs(g)&&g.positions?g.positions[li]:"",ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,pass:true,goals:0,pts,li});g.players[pi].score+=pts;advance(g)})};
 $("skipL").onclick=()=>{const li=S.li,pi=S.pi,L=LETTERS[li];commit(g=>{const e=turnGuard(g,li,pi);if(e)return e;
   if(isPairs(g)&&g.mode==="relay")return "Use Pass in Two letters relay.";
-  const LB=labelAt(g,li),pts=passPts(g);g.turns.push({letter:LB,ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,skip:true,pass:true,goals:0,pts,li,prevPi:pi});g.players[pi].score+=pts;g.skipped.push(LB);g.li++;if(g.mode==="all")g.pi=0;skipDead(g);if(g.li>=roundsOf(g))g.phase="over"})};
-const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
+  const LB=labelAt(g,li),pts=passPts(g);g.turns.push({letter:LB,ctry:isCtry(g)&&g.countries?g.countries[li]:"",club:isClubs(g)&&g.clubs?g.clubs[li]:"",pi,skip:true,pass:true,goals:0,pts,li,prevPi:pi});g.players[pi].score+=pts;g.skipped.push(LB);g.li++;if(g.mode==="all")g.step=0;skipDead(g);if(g.mode==="all")g.pi=orderAt(g,g.li)[0];if(g.li>=roundsOf(g))g.phase="over"})};
+const toLobby=()=>commit(g=>{g.phase="lobby";g.li=0;g.pi=0;g.step=0;g.orders=null;g.turns=[];g.skipped=[];g.used=[];g.players=[]});
 $("restart").onclick=()=>$("confirmRow").hidden=false;
 $("noRestart").onclick=()=>$("confirmRow").hidden=true;
 $("yesRestart").onclick=()=>{$("confirmRow").hidden=true;toLobby()};
